@@ -80,3 +80,36 @@ export const loginUsuario = async (req, res) => {
     });
   }
 };
+
+// ==========================================
+// 3. CAMBIAR CONTRASEÑA (Requiere Token)
+// ==========================================
+export const cambiarPassword = async (req, res) => {
+  try {
+    const { passwordActual, passwordNueva } = req.body;
+
+    // 1. Buscamos al usuario usando el ID que nuestro guardia (verificarToken) guardó en req.usuario
+    const usuario = await Usuario.findById(req.usuario.id);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    // 2. Comparamos si la contraseña que ingresó como "actual" realmente es la suya
+    const passwordCorrecta = await usuario.comprobarPassword(passwordActual);
+    if (!passwordCorrecta) {
+      return res.status(400).json({ mensaje: 'La contraseña actual es incorrecta.' });
+    }
+
+    // 3. Si pasó las pruebas, simplemente le pisamos la contraseña vieja con la nueva
+    usuario.password = passwordNueva;
+
+    // 4. ¡Magia! Al hacer .save(), el middleware pre('save') de tu modelo la encripta sola.
+    await usuario.save();
+
+    res.status(200).json({ mensaje: 'Contraseña actualizada con éxito.' });
+
+  } catch (error) {
+    console.log("💥 ERROR AL CAMBIAR PASSWORD:", error);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
