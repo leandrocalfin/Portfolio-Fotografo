@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-fondo-oceano: #0A1128;
+  --color-azul-logo: #1363DF;
+  --font-titulos: "Playfair Display", serif;
+  --font-textos: "Inter", sans-serif;
+}
+
+.efecto-editorial {
+  animation: ajustarEspaciado 1.8s ease-out forwards;
+}
+
+@keyframes ajustarEspaciado {
+  0% { letter-spacing: 0.4em; opacity: 0; transform: scale(1.05); }
+  100% { letter-spacing: normal; opacity: 1; transform: scale(1); }
+}
