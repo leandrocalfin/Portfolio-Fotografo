@@ -51,8 +51,8 @@ export const loginUsuario = async (req, res) => {
       return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
     }
 
-    // 2. Comparamos la contraseña de texto plano con la encriptada en la base de datos
-    const passwordValida = await bcrypt.compare(password, usuario.password);
+    // 2. Usamos el método que creamos en el modelo (ya no hace falta importar bcrypt aquí)
+    const passwordValida = await usuario.comprobarPassword(password);
     if (!passwordValida) {
       return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
     }
@@ -70,6 +70,13 @@ export const loginUsuario = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al iniciar sesión.' });
+    // 1. Esto va a imprimir el error detallado en tu terminal de VS Code
+    console.log("💥 ERROR REAL EN REGISTRO:", error); 
+    
+    // 2. Esto te va a devolver el motivo exacto en Postman/Thunder Client
+    res.status(500).json({ 
+      mensaje: 'Error al registrar usuario.',
+      detalle: error.message 
+    });
   }
 };

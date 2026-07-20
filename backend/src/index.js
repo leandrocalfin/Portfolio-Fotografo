@@ -28,11 +28,10 @@ app.get('/api/crear-admin-secreto', async (req, res) => {
       return res.send('El administrador ya existe en la base de datos.');
     }
 
-    const passwordEncriptada = await bcrypt.hash('admin123', 10);
-    
+    // Le pasamos la contraseña en texto normal, ¡el modelo se encarga de encriptarla!
     const nuevoAdmin = new Usuario({
       email: 'admin@studiovision.com',
-      password: passwordEncriptada
+      password: 'admin123' 
     });
     
     await nuevoAdmin.save();
