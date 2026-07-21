@@ -50,7 +50,7 @@ const Dashboard = () => {
   const obtenerTrabajos = async () => {
     try {
       const respuesta = await axios.get('http://localhost:3000/api/trabajos');
-      setTrabajos(respuesta.data.reverse()); 
+      setTrabajos(respuesta.data.trabajos); 
       setCargando(false);
     } catch (error) {
       console.error("Error al cargar trabajos:", error);
@@ -262,9 +262,6 @@ const Dashboard = () => {
               <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-1 bg-azul-logo"></span>
             </h1>
           </div>
-          <button onClick={cerrarSesion} className="mt-10 md:mt-0 md:absolute md:top-0 md:right-0 border border-red-500/50 text-red-400 px-4 py-2 md:px-6 md:py-3 text-[10px] md:text-xs uppercase tracking-widest font-bold hover:bg-red-500 hover:text-white transition-all">
-            Cerrar Sesión
-          </button>
         </div>
 
         {/* ================= FORMULARIO PREMIUM ================= */}

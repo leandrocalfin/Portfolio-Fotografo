@@ -8,6 +8,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // 1. Buscamos si existe el token
+  const token = localStorage.getItem('token');
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
@@ -22,6 +25,13 @@ const Navbar = () => {
 
   const cerrarMenu = () => setMenuAbierto(false);
 
+  // 2. Función para cerrar sesión desde el menú
+  const manejarCerrarSesion = () => {
+    localStorage.removeItem('token');
+    cerrarMenu();
+    navigate('/'); // Lo mandamos al inicio después de salir
+  };
+
   // LÓGICA INTELIGENTE: Rastreador automático de títulos
   const scrollToSection = (sectionId) => {
     cerrarMenu(); 
@@ -32,10 +42,7 @@ const Navbar = () => {
       } else {
         const section = document.getElementById(sectionId);
         if (section) {
-          // Buscamos el contenedor del título (que tiene la clase text-center)
           const titulo = section.querySelector('.text-center') || section;
-          
-          // 150px asegura que el título quede siempre a la vista debajo de la barra
           const compensacion = 150; 
           const y = titulo.getBoundingClientRect().top + window.scrollY - compensacion;
           
@@ -117,12 +124,38 @@ const Navbar = () => {
               <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-azul-logo transition-all duration-300 group-hover:w-full"></span>
             </button>
             
-            <Link to="/login" onClick={cerrarMenu} className="mt-4 md:mt-0 text-xs font-bold uppercase tracking-widest text-azul-logo border border-azul-logo/40 px-6 py-2.5 hover:bg-azul-logo hover:text-white transition-all duration-300">
-              Ingresar
-            </Link>
+            {/* 3. EL ESTADO CONDICIONAL DE AUTENTICACIÓN */}
+            {token ? (
+              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-4 mt-4 md:mt-0">
+                {/* Botón para volver al Panel */}
+                <Link 
+                  to="/dashboard" /* OJO: Cambiá '/dashboard' por '/admin' si tu ruta se llama distinto */
+                  onClick={cerrarMenu} 
+                  className="text-xs font-bold uppercase tracking-[0.15em] text-azul-logo hover:text-white transition-colors duration-300 relative group"
+                >
+                  Mi Panel
+                  <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-azul-logo transition-all duration-300 group-hover:w-full"></span>
+                </Link>
+                
+                {/* Botón para salir */}
+                <button 
+                  onClick={manejarCerrarSesion} 
+                  className="text-xs font-bold uppercase tracking-widest text-red-400 border border-red-500/40 px-6 py-2.5 hover:bg-red-600 hover:text-white transition-all duration-300"
+                >
+                  Salir
+                </button>
+              </div>
+            ) : (
+              <Link 
+                to="/login" 
+                onClick={cerrarMenu} 
+                className="mt-4 md:mt-0 text-xs font-bold uppercase tracking-widest text-azul-logo border border-azul-logo/40 px-6 py-2.5 hover:bg-azul-logo hover:text-white transition-all duration-300"
+              >
+                Ingresar
+              </Link>
+            )}
             
           </div>
-
         </div>
       </div>
     </nav>

@@ -76,12 +76,12 @@ const Inicio = () => {
       <div className="w-full bg-neutral-950">
         
         {/* 1. SECCIÓN HERO (La única que dejamos aquí porque es propia del inicio) */}
-        <section className="relative w-full min-h-screen flex items-center">
+        <section className="relative w-full min-h-[75vh] md:min-h-screen flex items-center">
           <div className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/fondo.png')" }}>
-            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent"></div>
           </div>
           <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
-            <div className="max-w-2xl">
+            <div className="max-w-2xl mt-28 md:mt-0">
               <h2 className="text-azul-logo font-bold tracking-[0.2em] text-sm uppercase mb-4">Capturando</h2>
               <h1 className="text-5xl md:text-7xl text-white font-titulos font-bold leading-tight mb-6 uppercase">Momentos <br/> Inolvidables</h1>
               <p className="text-neutral-400 text-lg md:text-xl font-textos mb-10 max-w-lg">Fotografía profesional para contar historias reales y emociones auténticas.</p>
