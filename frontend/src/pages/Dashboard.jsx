@@ -92,7 +92,7 @@ const Dashboard = () => {
   // Obtener trabajos
   const obtenerTrabajos = async () => {
     try {
-      const respuesta = await axios.get('http://localhost:3000/api/trabajos');
+      const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/trabajos`);
       setTrabajos(respuesta.data.trabajos); 
       setCargando(false);
     } catch (error) {
@@ -185,12 +185,12 @@ const Dashboard = () => {
 
     try {
       if (editandoId) {
-        await axios.put(`http://localhost:3000/api/trabajos/${editandoId}`, formData, {
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/trabajos/${editandoId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
         });
         setMensaje({ texto: '¡Álbum actualizado correctamente!', tipo: 'exito' });
       } else {
-        await axios.post('http://localhost:3000/api/trabajos', formData, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/trabajos`, formData, {
           headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
         });
         setMensaje({ texto: '¡Nuevo trabajo publicado con éxito!', tipo: 'exito' });
@@ -221,7 +221,7 @@ const Dashboard = () => {
     if (!idParaEliminar) return;
     
     try {
-      await axios.delete(`http://localhost:3000/api/trabajos/${idParaEliminar}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/trabajos/${idParaEliminar}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setMensaje({ texto: 'Álbum eliminado correctamente.', tipo: 'exito' });

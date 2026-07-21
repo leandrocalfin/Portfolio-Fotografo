@@ -15,7 +15,7 @@ const DetalleTrabajo = () => {
     window.scrollTo(0, 0); // Que siempre empiece arriba
     const obtenerDetalle = async () => {
       try {
-        const respuesta = await axios.get(`http://localhost:3000/api/trabajos/${id}`);
+        const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/trabajos/${id}`);
         setTrabajo(respuesta.data);
         setCargando(false);
       } catch (error) {

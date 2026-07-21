@@ -9,7 +9,7 @@ const UltimosTrabajos = () => {
   useEffect(() => {
     const obtenerUltimosTrabajos = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/trabajos?limite=3');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trabajos?limite=3`);
         const data = await response.json();
 
         // El slice(0, 3) corta la lista mágicamente, dejando solo los 3 primeros

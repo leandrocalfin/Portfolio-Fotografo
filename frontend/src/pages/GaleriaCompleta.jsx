@@ -13,7 +13,7 @@ const GaleriaCompleta = () => {
 
     const obtenerTodosLosTrabajos = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/trabajos');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trabajos`);
         const data = await response.json();
         
         setTrabajos(data.trabajos);

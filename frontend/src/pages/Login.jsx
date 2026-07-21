@@ -17,7 +17,7 @@ const Login = () => {
 
     try {
       // Usando tu ruta exacta del backend
-      const respuesta = await axios.post('http://localhost:3000/api/usuarios/login', {
+      const respuesta = await axios.post(`${import.meta.env.VITE_API_URL}/api/usuarios/login`, {
         email,
         password
       });
