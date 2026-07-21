@@ -10,10 +10,11 @@ const Galeria = () => {
     const obtenerTrabajos = async () => {
       try {
         const respuesta = await axios.get('http://localhost:3000/api/trabajos');
-        
+
         // Tomamos solo los últimos 3 trabajos y los invertimos 
-        const ultimosTres = respuesta.data.slice(-3).reverse();
-        
+        // Agarra del índice 0 al 3 (los 3 más recientes)
+        const ultimosTres = respuesta.data.trabajos.slice(0, 3);
+
         setTrabajos(ultimosTres);
         setCargando(false);
       } catch (error) {
@@ -40,7 +41,7 @@ const Galeria = () => {
   return (
     <section id="galeria" className="py-20 bg-neutral-900 w-full">
       <div className="max-w-7xl mx-auto px-6">
-        
+
         {/* Título */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-light tracking-widest text-white uppercase mb-4">
@@ -52,31 +53,31 @@ const Galeria = () => {
         {/* Grilla con máximo 3 trabajos */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {trabajos.map((trabajo) => (
-            <Link 
-              to={`/trabajo/${trabajo._id}`} 
-              key={trabajo._id} 
+            <Link
+              to={`/trabajo/${trabajo._id}`}
+              key={trabajo._id}
               className="group relative overflow-hidden rounded-lg shadow-lg cursor-pointer aspect-[4/5] bg-neutral-950 block border border-white/5"
             >
               {/* Imagen de fondo */}
-              <img 
-                src={trabajo.fotos && trabajo.fotos.length > 0 ? trabajo.fotos[0] : ""} 
-                alt={trabajo.titulo} 
+              <img
+                src={trabajo.fotos && trabajo.fotos.length > 0 ? trabajo.fotos[0] : ""}
+                alt={trabajo.titulo}
                 className="object-cover w-full h-full transform transition-transform duration-700 group-hover:scale-105"
               />
-              
+
               {/* Gradiente oscuro abajo para legibilidad */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               {/* CONTENEDOR DE TEXTOS */}
               <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
-                
+
                 {/* BLOQUE INSEPARABLE: TÍTULO Y BOTÓN (Ahora no hay nada en el medio) */}
                 <div className="flex flex-col">
                   <h3 className="text-white text-xl md:text-2xl font-bold tracking-widest uppercase mb-1">
                     {trabajo.titulo}
                   </h3>
                   <span className="text-azul-logo text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                    Ver sesión completa 
+                    Ver sesión completa
                     <span className="transform transition-transform duration-300 group-hover:translate-x-2">&rarr;</span>
                   </span>
                 </div>
@@ -97,8 +98,8 @@ const Galeria = () => {
 
         {/* Botón para ver todo */}
         <div className="text-center">
-          <Link 
-            to="/galeria" 
+          <Link
+            to="/galeria"
             className="inline-block border border-neutral-700 text-neutral-300 px-8 py-3 rounded-full uppercase tracking-widest text-xs font-semibold hover:border-azul-logo hover:text-azul-logo transition-all duration-300"
           >
             Ver Galería Completa

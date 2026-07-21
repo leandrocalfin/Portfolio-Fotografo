@@ -16,7 +16,7 @@ const GaleriaCompleta = () => {
         const response = await fetch('http://localhost:3000/api/trabajos');
         const data = await response.json();
         
-        setTrabajos(data);
+        setTrabajos(data.trabajos);
         setCargando(false);
       } catch (error) {
         console.error('Error al conectar con MongoDB:', error);

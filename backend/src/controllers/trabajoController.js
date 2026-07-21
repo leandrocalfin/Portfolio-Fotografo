@@ -38,13 +38,41 @@ export const crearTrabajo = async (req, res) => {
 };
 
 // ==========================================
-// LEER: Obtener todos los trabajos
+// LEER: Obtener todos los trabajos (Con Paginación)
 // ==========================================
 export const obtenerTrabajos = async (req, res) => {
   try {
-    const trabajos = await Trabajo.find().sort({ fechaCreacion: -1 }); 
-    res.status(200).json(trabajos);
+    // 1. Capturamos qué página quiere ver el usuario y cuántos por página.
+    // Si no manda nada en la URL, asumimos por defecto: Página 1, Límite 10.
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // 2. Calculamos cuántos documentos hay que "saltarse" (skip)
+    // Ejemplo: Si estoy en la página 2 con límite de 10, me salto los primeros 10.
+    const skip = (page - 1) * limit;
+
+    // 3. Ejecutamos la búsqueda aplicando el salto y el límite
+    const trabajos = await Trabajo.find()
+      .sort({ fechaCreacion: -1 }) // Los más nuevos primero
+      .skip(skip)
+      .limit(limit);
+
+    // 4. Contamos cuántos trabajos hay en TOTAL en la base de datos
+    const totalTrabajos = await Trabajo.countDocuments();
+
+    // 5. Devolvemos las fotos y un pequeño resumen (metadata) para ayudar al frontend
+    res.status(200).json({
+      trabajos, // Acá va el array con las fotos
+      paginacion: {
+        paginaActual: page,
+        totalPaginas: Math.ceil(totalTrabajos / limit),
+        totalTrabajos,
+        limite: limit
+      }
+    });
+
   } catch (error) {
+    console.error("Error al obtener trabajos:", error);
     res.status(500).json({ mensaje: 'Error interno al obtener los trabajos.' });
   }
 };
