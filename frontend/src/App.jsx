@@ -7,6 +7,31 @@ import Dashboard from './pages/Dashboard';
 import DetalleTrabajo from './pages/DetalleTrabajo'; 
 import WhatsApp from './components/WhatsApp';
 import Footer from './components/Footer';
+import axios from 'axios';
+
+// ==========================================
+// VIGILANTE GLOBAL DE SESIÓN (INTERCEPTOR)
+// ==========================================
+axios.interceptors.response.use(
+  (response) => {
+    // Si la respuesta es exitosa, la deja pasar normal
+    return response;
+  },
+  (error) => {
+    // Si el servidor responde que el token venció o no sirve (401 / 403)
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      
+      // 1. Borramos el token muerto
+      localStorage.removeItem('token'); // (O sessionStorage si elegiste el paso 1)
+      
+      // 2. Lo mandamos al login a la fuerza
+      window.location.href = '/login';
+    }
+    
+    // Si es otro tipo de error (ej: formulario incompleto), lo devuelve para que tu app lo maneje
+    return Promise.reject(error);
+  }
+);
 
 function App() {
   return (

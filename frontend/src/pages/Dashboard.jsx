@@ -5,6 +5,49 @@ import axios from 'axios';
 const Dashboard = () => {
   const navigate = useNavigate();
 
+// ==========================================
+  // TEMPORIZADOR DE INACTIVIDAD ROBUSTO
+  // ==========================================
+  useEffect(() => {
+    const TIEMPO_LIMITE = 5 * 60 * 1000; // 15 minutos en milisegundos
+
+    // Guardamos el momento de inicio si no existe
+    if (!localStorage.getItem('ultimaActividad')) {
+      localStorage.setItem('ultimaActividad', Date.now());
+    }
+
+    const verificarInactividad = () => {
+      const ultimaActividad = localStorage.getItem('ultimaActividad');
+      const ahora = Date.now();
+
+      // Si pasó el tiempo límite, cerramos sesión
+      if (ahora - ultimaActividad > TIEMPO_LIMITE) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('ultimaActividad');
+        navigate('/login');
+      }
+    };
+
+    const actualizarActividad = () => {
+      localStorage.setItem('ultimaActividad', Date.now());
+    };
+
+    // Revisar cada 1 minuto si ya expiró el tiempo
+    const intervalo = setInterval(verificarInactividad, 60000);
+
+    // Actualizar la última actividad cuando el usuario interactúe
+    window.addEventListener('mousemove', actualizarActividad);
+    window.addEventListener('keydown', actualizarActividad);
+    window.addEventListener('click', actualizarActividad);
+
+    return () => {
+      clearInterval(intervalo);
+      window.removeEventListener('mousemove', actualizarActividad);
+      window.removeEventListener('keydown', actualizarActividad);
+      window.removeEventListener('click', actualizarActividad);
+    };
+  }, [navigate]);
+
   // Estados para el Formulario de Carga
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
