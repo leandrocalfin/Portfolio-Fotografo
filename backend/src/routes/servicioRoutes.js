@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { obtenerServicios, crearServicio, actualizarServicio, eliminarServicio } from '../controllers/servicioController.js';
 import { verificarToken } from '../middlewares/authMiddleware.js';
-import upload from '../config/multer.js'; // O la ruta donde tengas tu configuración de multer/cloudinary
+import { uploadFotos as upload } from '../config/cloudinary.js'; // O la ruta donde tengas tu configuración de multer/cloudinary
 
 const router = Router();
 
