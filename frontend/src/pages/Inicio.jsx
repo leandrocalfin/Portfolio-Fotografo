@@ -12,8 +12,6 @@ const Inicio = () => {
   // ESTADOS PARA LA PANTALLA DE PRE-CARGA
   // ==========================================
   
-  // 1. Iniciamos el estado leyendo la memoria del navegador. 
-  // Si 'yaVioSplash' existe, mostrarCarga arranca en false. Si no, en true.
   const [mostrarCarga, setMostrarCarga] = useState(() => {
     return !sessionStorage.getItem('yaVioSplash');
   });
@@ -21,34 +19,31 @@ const Inicio = () => {
   const [opacidad, setOpacidad] = useState('opacity-100');
 
   useEffect(() => {
-    // Si ya vio el splash, cortamos la función acá nomás y no hacemos animaciones
     if (!mostrarCarga) return;
 
-    // A los 2 segundos, comienza a ponerse transparente (Fade Out)
     const temporizadorOpacidad = setTimeout(() => {
       setOpacidad('opacity-0');
     }, 2000);
 
-    // A los 2.7 segundos, se borra del todo y guardamos en memoria que ya lo vio
     const temporizadorBorrado = setTimeout(() => {
       setMostrarCarga(false);
-      sessionStorage.setItem('yaVioSplash', 'true'); // <-- ACÁ ANOTAMOS EL PAPELITO
+      sessionStorage.setItem('yaVioSplash', 'true');
     }, 2700);
 
-    // Limpieza de memoria
     return () => {
       clearTimeout(temporizadorOpacidad);
       clearTimeout(temporizadorBorrado);
     };
-  }, [mostrarCarga]); // Le avisamos a React que dependemos de este estado
+  }, [mostrarCarga]);
 
   return (
     <>
       {/* ========================================================= */}
       {/* 0. PANTALLA DE CARGA (SPLASH SCREEN) FLOTANTE */}
+      <div></div>
       {/* ========================================================= */}
       {mostrarCarga && (
-        <div className={`fixed inset-0 z-[9999] bg-neutral-950 flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out ${opacidad}`}>
+        <div className={`fixed inset-0 z-[9999] bg-crema-suave dark:bg-neutral-950 flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out ${opacidad}`}>
           
           {/* LOGO ANIMADO CON IMAGEN */}
           <div className="flex items-center justify-center mb-8 animate-pulse">
@@ -73,19 +68,21 @@ const Inicio = () => {
       {/* ========================================================= */}
       {/* TU PÁGINA WEB REAL (Se revela de fondo) */}
       {/* ========================================================= */}
-      <div className="w-full bg-neutral-950">
+      <div className="w-full bg-crema-suave dark:bg-neutral-950 transition-colors duration-300">
         
-        {/* 1. SECCIÓN HERO (La única que dejamos aquí porque es propia del inicio) */}
+        {/* 1. SECCIÓN HERO */}
         <section className="relative w-full min-h-[75vh] md:min-h-screen flex items-center">
           <div className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/fondo.png')" }}>
-            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent"></div>
+            {/* GRADIENTE CORREGIDO: Se usa un tono oscuro translúcido sutil que oscurece la foto por igual en ambos modos para que el texto resalte sin bloques blancos feos */}
+            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/70 via-black/40 md:from-black/80 md:via-black/30 to-transparent"></div>
           </div>
+          
           <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
             <div className="max-w-2xl mt-28 md:mt-0">
-              <h2 className="text-azul-logo font-bold tracking-[0.2em] text-sm uppercase mb-4">Capturando</h2>
-              <h1 className="text-5xl md:text-7xl text-white font-titulos font-bold leading-tight mb-6 uppercase">Momentos <br/> Inolvidables</h1>
-              <p className="text-neutral-400 text-lg md:text-xl font-textos mb-10 max-w-lg">Fotografía profesional para contar historias reales y emociones auténticas.</p>
-              <Link to="/galeria" className="inline-flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-azul-logo border border-azul-logo/40 px-8 py-4 hover:bg-azul-logo hover:text-white transition-all duration-300 group">
+              <h2 className="text-azul-logo font-bold tracking-[0.2em] text-sm uppercase mb-4 drop-shadow-sm">Capturando</h2>
+              <h1 className="text-5xl md:text-7xl text-white font-titulos font-bold leading-tight mb-6 uppercase drop-shadow-md">Momentos <br/> Inolvidables</h1>
+              <p className="text-neutral-200 md:text-neutral-300 text-lg md:text-xl font-textos mb-10 max-w-lg drop-shadow-sm">Fotografía profesional para contar historias reales y emociones auténticas.</p>
+              <Link to="/galeria" className="inline-flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-white border border-white/30 bg-black/30 backdrop-blur-sm px-8 py-4 hover:border-azul-logo hover:bg-azul-logo transition-all duration-300 group">
                 Ver Galería 
                 <svg className="w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
               </Link>

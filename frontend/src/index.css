@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-fondo-oceano: #0A1128;
   --color-azul-logo: #1363DF;
+  --color-crema-suave: #FBF9F5;
+  --color-crema-azulado: #F4F6F9;
   --font-titulos: "Playfair Display", serif;
   --font-textos: "Inter", sans-serif;
 }

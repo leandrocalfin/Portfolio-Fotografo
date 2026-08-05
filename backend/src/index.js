@@ -7,8 +7,9 @@ import { conectarDB } from './config/db.js';
 import trabajoRoutes from './routes/trabajoRoutes.js'; 
 import usuarioRoutes from './routes/usuarioRoutes.js'; 
 import bcrypt from 'bcrypt'; 
+import servicioRoutes from './routes/servicioRoutes.js';
 
-// 👇 CORRECCIÓN AQUÍ: Agregamos las llaves a Usuario
+//  Agregamos las llaves a Usuario
 import { Usuario } from './models/Usuario.js'; 
 
 dotenv.config();
@@ -17,6 +18,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/servicios', servicioRoutes);
 
 conectarDB();
 

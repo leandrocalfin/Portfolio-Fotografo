@@ -28,7 +28,7 @@ const Galeria = () => {
 
   if (cargando) {
     return (
-      <div className="py-20 bg-neutral-900 text-center">
+      <div className="py-20 bg-neutral-100 dark:bg-neutral-900 text-center transition-colors duration-300">
         <div className="text-azul-logo text-xl font-light tracking-widest animate-pulse">
           Cargando últimos trabajos...
         </div>
@@ -39,12 +39,12 @@ const Galeria = () => {
   if (trabajos.length === 0) return null;
 
   return (
-    <section id="galeria" className="py-20 bg-neutral-900 w-full">
+    <section id="galeria" className="py-20 bg-neutral-100 dark:bg-neutral-900 w-full transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6">
 
         {/* Título */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-light tracking-widest text-white uppercase mb-4">
+          <h2 className="text-3xl md:text-4xl font-light tracking-widest text-neutral-900 dark:text-white uppercase mb-4 transition-colors">
             Últimos <span className="text-azul-logo font-bold">Trabajos</span>
           </h2>
           <div className="h-1 w-20 bg-azul-logo mx-auto rounded"></div>
@@ -56,7 +56,7 @@ const Galeria = () => {
             <Link
               to={`/trabajo/${trabajo._id}`}
               key={trabajo._id}
-              className="group relative overflow-hidden rounded-lg shadow-lg cursor-pointer aspect-[4/5] bg-neutral-950 block border border-white/5"
+              className="group relative overflow-hidden rounded-lg shadow-lg cursor-pointer aspect-[4/5] bg-neutral-200 dark:bg-neutral-950 block border border-neutral-300 dark:border-white/5 transition-colors"
             >
               {/* Imagen de fondo */}
               <img
@@ -71,7 +71,7 @@ const Galeria = () => {
               {/* CONTENEDOR DE TEXTOS */}
               <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
 
-                {/* BLOQUE INSEPARABLE: TÍTULO Y BOTÓN (Ahora no hay nada en el medio) */}
+                {/* BLOQUE INSEPARABLE: TÍTULO Y BOTÓN */}
                 <div className="flex flex-col">
                   <h3 className="text-white text-xl md:text-2xl font-bold tracking-widest uppercase mb-1">
                     {trabajo.titulo}
@@ -82,7 +82,7 @@ const Galeria = () => {
                   </span>
                 </div>
 
-                {/* DESCRIPCIÓN: Aparece ABAJO del botón. Al crecer, empuja al bloque de arriba. */}
+                {/* DESCRIPCIÓN */}
                 <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500 ease-in-out">
                   <div className="overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <p className="text-neutral-300 text-sm line-clamp-3 mt-4">
@@ -100,7 +100,7 @@ const Galeria = () => {
         <div className="text-center">
           <Link
             to="/galeria"
-            className="inline-block border border-neutral-700 text-neutral-300 px-8 py-3 rounded-full uppercase tracking-widest text-xs font-semibold hover:border-azul-logo hover:text-azul-logo transition-all duration-300"
+            className="inline-block border border-neutral-400 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 px-8 py-3 rounded-full uppercase tracking-widest text-xs font-semibold hover:border-azul-logo hover:text-azul-logo transition-all duration-300"
           >
             Ver Galería Completa
           </Link>

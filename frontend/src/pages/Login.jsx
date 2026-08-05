@@ -37,43 +37,43 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col justify-center items-center px-6 relative z-10">
+    <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 flex flex-col justify-center items-center px-6 relative z-10 transition-colors duration-300">
       
-      <div className="w-full max-w-md bg-neutral-900/40 p-8 md:p-12 border border-white/5 relative overflow-hidden group">
+      <div className="w-full max-w-md bg-crema-azulado dark:bg-neutral-900/40 p-8 md:p-12 border border-neutral-300 dark:border-white/5 relative overflow-hidden group shadow-xl">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-azul-logo/50 to-transparent opacity-50"></div>
         
         <div className="text-center mb-10">
-          <h2 className="text-3xl text-white font-titulos font-bold uppercase tracking-widest mb-2">Acceso</h2>
+          <h2 className="text-3xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-widest mb-2 transition-colors">Acceso</h2>
           <p className="text-neutral-500 text-xs tracking-[0.2em] uppercase font-bold">Panel de Administración</p>
         </div>
 
         {/* Cartel de error condicional con estilo premium */}
         {error && (
-          <div className="bg-red-900/20 border border-red-500/30 text-red-400 text-xs text-center p-4 mb-6 uppercase tracking-widest font-bold">
+          <div className="bg-red-900/20 border border-red-500/30 text-red-500 dark:text-red-400 text-xs text-center p-4 mb-6 uppercase tracking-widest font-bold">
             {error}
           </div>
         )}
 
         <form onSubmit={manejarSubmit} className="flex flex-col gap-8">
           <div className="flex flex-col gap-3">
-            <label className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-500 ml-1">Email</label>
+            <label className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-600 dark:text-neutral-500 ml-1">Email</label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-neutral-950 border-b border-white/10 px-4 py-3 text-white focus:outline-none focus:border-azul-logo transition-colors duration-300 font-textos text-sm placeholder:text-neutral-700" 
+              className="bg-white dark:bg-neutral-950 border-b border-neutral-300 dark:border-white/10 px-4 py-3 text-neutral-900 dark:text-white focus:outline-none focus:border-azul-logo transition-colors duration-300 font-textos text-sm placeholder:text-neutral-400 dark:placeholder:text-neutral-700 shadow-sm dark:shadow-none" 
               placeholder="admin@tuweb.com"
               required 
             />
           </div>
 
           <div className="flex flex-col gap-3">
-            <label className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-500 ml-1">Contraseña</label>
+            <label className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-600 dark:text-neutral-500 ml-1">Contraseña</label>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-neutral-950 border-b border-white/10 px-4 py-3 text-white focus:outline-none focus:border-azul-logo transition-colors duration-300 font-textos text-sm placeholder:text-neutral-700" 
+              className="bg-white dark:bg-neutral-950 border-b border-neutral-300 dark:border-white/10 px-4 py-3 text-neutral-900 dark:text-white focus:outline-none focus:border-azul-logo transition-colors duration-300 font-textos text-sm placeholder:text-neutral-400 dark:placeholder:text-neutral-700 shadow-sm dark:shadow-none" 
               placeholder="••••••••"
               required 
             />
@@ -83,7 +83,7 @@ const Login = () => {
             <button 
               type="submit" 
               disabled={cargando}
-              className="w-full text-xs font-bold uppercase tracking-widest text-white border border-azul-logo bg-azul-logo px-10 py-4 hover:bg-transparent hover:text-azul-logo transition-all duration-300 disabled:opacity-50 disabled:hover:bg-azul-logo disabled:hover:text-white disabled:cursor-not-allowed"
+              className="w-full text-xs font-bold uppercase tracking-widest text-white border border-azul-logo bg-azul-logo px-10 py-4 hover:bg-transparent hover:text-azul-logo dark:hover:text-azul-logo transition-all duration-300 disabled:opacity-50 disabled:hover:bg-azul-logo disabled:hover:text-white disabled:cursor-not-allowed cursor-pointer shadow-md"
             >
               {cargando ? 'Verificando...' : 'Ingresar al Sistema'}
             </button>

@@ -14,21 +14,13 @@ import axios from 'axios';
 // ==========================================
 axios.interceptors.response.use(
   (response) => {
-    // Si la respuesta es exitosa, la deja pasar normal
     return response;
   },
   (error) => {
-    // Si el servidor responde que el token venció o no sirve (401 / 403)
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      
-      // 1. Borramos el token muerto
-      localStorage.removeItem('token'); // (O sessionStorage si elegiste el paso 1)
-      
-      // 2. Lo mandamos al login a la fuerza
+      localStorage.removeItem('token');
       window.location.href = '/login';
     }
-    
-    // Si es otro tipo de error (ej: formulario incompleto), lo devuelve para que tu app lo maneje
     return Promise.reject(error);
   }
 );
@@ -36,8 +28,8 @@ axios.interceptors.response.use(
 function App() {
   return (
     <Router>
-      {/* 1. Cambiamos bg-fondo-oceano por bg-neutral-950 para mantener la elegancia oscura */}
-      <div className="min-h-screen bg-neutral-950 font-textos flex flex-col">
+      {/* Contenedor principal con soporte dinámico para modo claro y oscuro */}
+      <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-textos flex flex-col transition-colors duration-300">
         <Navbar />
         
         <main className="flex-grow">
@@ -52,7 +44,6 @@ function App() {
         
         <Footer />
         
-        {/* 2. Colocamos el componente WhatsApp aquí para que flote sobre cualquier página */}
         <WhatsApp />
       </div>
     </Router>

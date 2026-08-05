@@ -39,16 +39,16 @@ const GaleriaCompleta = () => {
     : trabajos.filter(trabajo => trabajo.categoria === filtroActivo);
 
   return (
-    <div className="w-full min-h-screen bg-neutral-950 pt-32 pb-24 px-6 relative z-10">
+    <div className="w-full min-h-screen bg-crema-suave dark:bg-neutral-950 pt-32 pb-24 px-6 relative z-10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         
         <div className="text-center mb-12">
           <h2 className="text-azul-logo font-bold tracking-[0.2em] text-xs md:text-sm uppercase mb-4">Portafolio</h2>
-          <h1 className="text-4xl md:text-5xl text-white font-titulos font-bold leading-tight uppercase relative inline-block">
+          <h1 className="text-4xl md:text-5xl text-neutral-900 dark:text-white font-titulos font-bold leading-tight uppercase relative inline-block transition-colors">
             Galería Completa
             <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-1 bg-azul-logo"></span>
           </h1>
-          <p className="text-neutral-400 text-sm mt-8 max-w-2xl mx-auto">
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm mt-8 max-w-2xl mx-auto transition-colors">
             Explora todas mis sesiones fotográficas. Cada imagen captura una historia única y auténtica.
           </p>
         </div>
@@ -62,8 +62,8 @@ const GaleriaCompleta = () => {
                 onClick={() => setFiltroActivo(categoria)}
                 className={`px-6 py-2.5 text-xs font-bold uppercase tracking-widest transition-all duration-300 border ${
                   filtroActivo === categoria
-                    ? 'border-azul-logo bg-azul-logo text-white shadow-[0_0_15px_rgba(var(--color-azul-logo),0.5)]'
-                    : 'border-white/20 text-neutral-400 hover:border-azul-logo hover:text-white'
+                    ? 'border-azul-logo bg-azul-logo text-white shadow-[0_0_15px_rgba(19,99,223,0.4)]'
+                    : 'border-neutral-300 dark:border-white/20 text-neutral-700 dark:text-neutral-400 hover:border-azul-logo hover:text-neutral-900 dark:hover:text-white bg-crema-azulado dark:bg-transparent'
                 }`}
               >
                 {categoria}
@@ -74,7 +74,7 @@ const GaleriaCompleta = () => {
 
         {cargando ? (
           <div className="flex justify-center items-center h-64">
-            <p className="text-neutral-400 font-bold uppercase tracking-widest animate-pulse">Cargando portafolio completo...</p>
+            <p className="text-neutral-600 dark:text-neutral-400 font-bold uppercase tracking-widest animate-pulse">Cargando portafolio completo...</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -83,7 +83,7 @@ const GaleriaCompleta = () => {
               <Link 
                 to={`/trabajo/${trabajo._id}`}
                 key={trabajo._id} 
-                className="group relative overflow-hidden bg-neutral-900 aspect-[4/3] cursor-pointer rounded-sm border border-white/5 hover:border-azul-logo/50 transition-all duration-500 block"
+                className="group relative overflow-hidden bg-crema-azulado dark:bg-neutral-900 aspect-[4/3] cursor-pointer rounded-sm border border-neutral-300 dark:border-white/5 hover:border-azul-logo/50 transition-all duration-500 block shadow-md"
               >
                 <div 
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110" 
