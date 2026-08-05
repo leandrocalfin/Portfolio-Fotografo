@@ -113,9 +113,11 @@ const Dashboard = () => {
   const obtenerServicios = async () => {
     try {
       const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/servicios`);
-      console.log("Servicios obtenidos:", respuesta.data); // 👈 Mirá esto en la consola F12
-      // Si tu backend devuelve directamente un array o viene dentro de un objeto, lo adaptamos acá:
-      setServicios(respuesta.data.servicios || respuesta.data);
+      console.log("Respuesta de servicios:", respuesta.data);
+      
+      // Manejamos si viene como objeto { servicios: [...] } o directamente como array [...]
+      const datosServicios = respuesta.data.servicios || respuesta.data;
+      setServicios(Array.isArray(datosServicios) ? datosServicios : []);
     } catch (error) {
       console.error("Error al cargar servicios:", error);
     }

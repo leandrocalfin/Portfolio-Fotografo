@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Pagination, Navigation } from 'swiper/modules'; 
 
@@ -7,36 +9,28 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
 const Servicios = () => {
-  const misServicios = [
-    {
-      id: 1,
-      titulo: "Eventos",
-      descripcion: "Cobertura de tu gran día. Capturando cada lágrima y sonrisa de forma documental y natural.",
-      imagen: "/servicios-bodas.jpg", 
-      link: "#contacto"
-    },
-    {
-      id: 2,
-      titulo: "Retratos",
-      descripcion: "Sesiones individuales o parejas. Diseñadas para destacar tu personalidad en un ambiente relajado.",
-      imagen: "/servicios-retratos.jpg", 
-      link: "#contacto"
-    },
-    {
-      id: 3,
-      titulo: "Marcas y Producto",
-      descripcion: "Fotografía gastronómica y de producto. Imágenes diseñadas para potenciar tu identidad.",
-      imagen: "/servicios-marcas.jpg", 
-      link: "#contacto"
-    },
-    {
-      id: 4,
-      titulo: "Paisajes",
-      descripcion: "Cada paisaje tiene una historia, y nuestra cámara la cuenta. Inmortalizamos momentos naturales con luz, color y detalle, creando imágenes que transmiten tranquilidad y conexión con la naturaleza.",
-      imagen: "/servicios-paisajes.png", 
-      link: "#contacto"
-    }
-  ];
+  const [misServicios, setMisServicios] = useState([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const obtenerServiciosPublicos = async () => {
+      try {
+        const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/servicios`);
+        const datos = respuesta.data.servicios || respuesta.data;
+        setMisServicios(Array.isArray(datos) ? datos : []);
+      } catch (error) {
+        console.error("Error al obtener servicios públicos:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    obtenerServiciosPublicos();
+  }, []);
+
+  if (cargando || misServicios.length === 0) {
+    return null; // O un carrusel vacío/esqueleto mientras carga
+  }
 
   return (
     <section className="pt-4 pb-16 px-4 max-w-7xl mx-auto w-full overflow-hidden transition-colors duration-300" id="servicios">
@@ -82,7 +76,7 @@ const Servicios = () => {
         >
           {misServicios.map((servicio) => (
             <SwiperSlide 
-              key={servicio.id} 
+              key={servicio._id} 
               style={{ width: '320px' }}
             >
               {/* Tarjeta con fondo crema azulado */}
@@ -111,7 +105,7 @@ const Servicios = () => {
                   </div>
                   
                   <a 
-                    href={servicio.link}
+                    href={servicio.link || "#contacto"}
                     className="mt-4 text-[11px] font-bold uppercase tracking-widest text-neutral-800 dark:text-neutral-300 border border-neutral-300 dark:border-white/20 rounded-full px-8 py-2.5 hover:bg-azul-logo hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300"
                   >
                     Consultar
