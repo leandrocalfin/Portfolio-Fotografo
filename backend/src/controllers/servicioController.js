@@ -14,10 +14,10 @@ export const crearServicio = async (req, res) => {
   try {
     const { titulo, descripcion, link } = req.body;
     
-    // Si subes imagen con multer/cloudinary:
+    // Capturamos la URL de la imagen de forma segura contemplando distintas versiones de multer-storage
     let imagenUrl = "";
     if (req.file) {
-      imagenUrl = req.file.path; // O la URL de tu servicio de nube
+      imagenUrl = req.file.path || req.file.secure_url || req.file.url;
     }
 
     const nuevoServicio = new Servicio({
@@ -30,6 +30,7 @@ export const crearServicio = async (req, res) => {
     const servicioGuardado = await nuevoServicio.save();
     res.status(201).json({ mensaje: "Servicio creado con éxito", servicio: servicioGuardado });
   } catch (error) {
+    console.error("Error detallado al crear servicio:", error);
     res.status(500).json({ mensaje: "Error al crear el servicio", error: error.message });
   }
 };
@@ -41,7 +42,7 @@ export const actualizarServicio = async (req, res) => {
 
     let imagenUrl = imagenExistente;
     if (req.file) {
-      imagenUrl = req.file.path;
+      imagenUrl = req.file.path || req.file.secure_url || req.file.url;
     }
 
     const servicioActualizado = await Servicio.findByIdAndUpdate(
@@ -56,6 +57,7 @@ export const actualizarServicio = async (req, res) => {
 
     res.json({ mensaje: "Servicio actualizado con éxito", servicio: servicioActualizado });
   } catch (error) {
+    console.error("Error detallado al actualizar servicio:", error);
     res.status(500).json({ mensaje: "Error al actualizar el servicio", error: error.message });
   }
 };

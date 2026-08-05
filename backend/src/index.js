@@ -9,17 +9,20 @@ import usuarioRoutes from './routes/usuarioRoutes.js';
 import bcrypt from 'bcrypt'; 
 import servicioRoutes from './routes/servicioRoutes.js';
 
-//  Agregamos las llaves a Usuario
+// Agregamos las llaves a Usuario
 import { Usuario } from './models/Usuario.js'; 
 
 dotenv.config();
 
 const app = express();
 
+// 🔑 ESTO DEBE IR PRIMERO QUE NADA PARA EL PROXY DE RENDER
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.json());
-app.use('/api/servicios', servicioRoutes);
 
+// CONECTAMOS LA BASE DE DATOS
 conectarDB();
 
 // RUTA TEMPORAL PARA CREAR AL ADMIN (BORRAR DESPUÉS)
@@ -30,7 +33,6 @@ app.get('/api/crear-admin-secreto', async (req, res) => {
       return res.send('El administrador ya existe en la base de datos.');
     }
 
-    // Le pasamos la contraseña en texto normal, ¡el modelo se encarga de encriptarla!
     const nuevoAdmin = new Usuario({
       email: 'admin@studiovision.com',
       password: 'admin123' 
@@ -43,7 +45,8 @@ app.get('/api/crear-admin-secreto', async (req, res) => {
   }
 });
 
-// 2. CONECTAMOS LAS RUTAS
+// 2. CONECTAMOS TODAS LAS RUTAS
+app.use('/api/servicios', servicioRoutes);
 app.use('/api/trabajos', trabajoRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 
