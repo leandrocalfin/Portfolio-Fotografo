@@ -25,26 +25,6 @@ app.use(express.json());
 // CONECTAMOS LA BASE DE DATOS
 conectarDB();
 
-// RUTA TEMPORAL PARA CREAR AL ADMIN (BORRAR DESPUÉS)
-app.get('/api/crear-admin-secreto', async (req, res) => {
-  try {
-    const adminExiste = await Usuario.findOne({ email: 'admin@studiovision.com' });
-    if (adminExiste) {
-      return res.send('El administrador ya existe en la base de datos.');
-    }
-
-    const nuevoAdmin = new Usuario({
-      email: 'admin@studiovision.com',
-      password: 'admin123' 
-    });
-    
-    await nuevoAdmin.save();
-    res.send('¡Administrador creado con éxito! Email: admin@studiovision.com | Pass: admin123');
-  } catch (error) {
-    res.send('Error al crear: ' + error.message);
-  }
-});
-
 // 2. CONECTAMOS TODAS LAS RUTAS
 app.use('/api/servicios', servicioRoutes);
 app.use('/api/trabajos', trabajoRoutes);

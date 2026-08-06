@@ -278,7 +278,7 @@ const Dashboard = () => {
     formData.append('descripcion', descripcionServicio);
     formData.append('link', linkServicio);
     if (imagenServicio) {
-      formData.append('imagenes', imagenServicio);
+      formData.append('imagen', imagenServicio);
     }
     if (editandoServicioId) {
       formData.append('imagenExistente', imagenServicioActual);

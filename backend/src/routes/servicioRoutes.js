@@ -6,8 +6,9 @@ import { uploadFotos as upload } from '../config/cloudinary.js';
 const router = Router();
 
 router.get('/', obtenerServicios);
-router.post('/', verificarToken, upload.any(), crearServicio); // 👈 Usamos any() para evitar el choque de nombres
-router.put('/:id', verificarToken, upload.any(), actualizarServicio);
+// Usamos upload.single('imagen') de forma estricta y segura
+router.post('/', verificarToken, upload.single('imagen'), crearServicio); 
+router.put('/:id', verificarToken, upload.single('imagen'), actualizarServicio);
 router.delete('/:id', verificarToken, eliminarServicio);
 
 export default router;
