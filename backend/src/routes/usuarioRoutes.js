@@ -1,6 +1,6 @@
 import express from 'express';
-// 1. Importamos también las funciones de perfil y avatar del controlador
-import { registrarUsuario, loginUsuario, cambiarPassword, obtenerPerfil, actualizarAvatar } from '../controllers/usuarioController.js';
+// 1. Importamos también actualizarInfoPerfil
+import { registrarUsuario, loginUsuario, cambiarPassword, obtenerPerfil, actualizarAvatar, actualizarInfoPerfil } from '../controllers/usuarioController.js';
 
 // Importamos los escudos y validadores
 import { loginLimiter } from '../middlewares/limiter.js';
@@ -26,17 +26,23 @@ router.put('/cambiar-password',
   cambiarPassword 
 );
 
-// 2. Nueva ruta para obtener los datos del perfil (incluyendo el avatar)
+// Ruta para obtener los datos del perfil (avatar, email, redes)
 router.get('/perfil', 
   verificarToken, 
   obtenerPerfil
 );
 
-// 3. Nueva ruta para actualizar la foto de perfil (avatar)
+// Ruta para actualizar la foto de perfil (avatar)
 router.put('/perfil/avatar', 
   verificarToken, 
-  upload.single('imagen'), // Nombre del campo que mandará el frontend
+  upload.single('imagen'), 
   actualizarAvatar
+);
+
+// NUEVA RUTA: Para actualizar WhatsApp e Instagram
+router.put('/perfil/info', 
+  verificarToken, 
+  actualizarInfoPerfil
 );
 
 export default router;
