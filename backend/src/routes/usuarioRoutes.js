@@ -1,12 +1,13 @@
 import express from 'express';
-// 1. Importamos la nueva función del controlador
-import { registrarUsuario, loginUsuario, cambiarPassword } from '../controllers/usuarioController.js';
+// 1. Importamos también las funciones de perfil y avatar del controlador
+import { registrarUsuario, loginUsuario, cambiarPassword, obtenerPerfil, actualizarAvatar } from '../controllers/usuarioController.js';
 
 // Importamos los escudos y validadores
 import { loginLimiter } from '../middlewares/limiter.js';
 import { verificarToken } from '../middlewares/authMiddleware.js';
 import { validarEsquema } from '../middlewares/validarZod.js';
 import { cambiarPasswordSchema } from '../schemas/usuarioSchema.js';
+import upload from '../middlewares/upload.js'; // O la ruta donde tengas tu multer configurado
 
 const router = express.Router();
 
@@ -19,11 +20,23 @@ router.post('/login', loginLimiter, loginUsuario);
 // ==========================================
 // RUTAS PRIVADAS
 // ==========================================
-// 2. Armamos la ruta encadenando los middlewares en el orden correcto
 router.put('/cambiar-password', 
-  verificarToken, // Primero vemos si tiene permiso
-  validarEsquema(cambiarPasswordSchema), // Después vemos si escribió bien las contraseñas
-  cambiarPassword // Finalmente ejecutamos el cambio
+  verificarToken, 
+  validarEsquema(cambiarPasswordSchema), 
+  cambiarPassword 
+);
+
+// 2. Nueva ruta para obtener los datos del perfil (incluyendo el avatar)
+router.get('/perfil', 
+  verificarToken, 
+  obtenerPerfil
+);
+
+// 3. Nueva ruta para actualizar la foto de perfil (avatar)
+router.put('/perfil/avatar', 
+  verificarToken, 
+  upload.single('imagen'), // Nombre del campo que mandará el frontend
+  actualizarAvatar
 );
 
 export default router;

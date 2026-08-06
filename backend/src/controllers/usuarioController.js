@@ -9,17 +9,14 @@ export const registrarUsuario = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Verificamos si el correo ya está registrado en la base de datos
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
       return res.status(400).json({ mensaje: 'Este email ya está en uso.' });
     }
 
-    // 2. La magia de Bcrypt: Encriptamos la contraseña
-    const salt = await bcrypt.genSalt(10); // Generamos una "semilla" de encriptación aleatoria
-    const passwordEncriptada = await bcrypt.hash(password, salt); // Trituramos la contraseña
+    const salt = await bcrypt.genSalt(10);
+    const passwordEncriptada = await bcrypt.hash(password, salt);
 
-    // 3. Creamos y guardamos el usuario con la contraseña ya ilegible
     const nuevoUsuario = new Usuario({
       email,
       password: passwordEncriptada
@@ -29,7 +26,6 @@ export const registrarUsuario = async (req, res) => {
 
     res.status(201).json({ 
       mensaje: 'Administrador registrado con éxito.',
-      // Devolvemos el usuario para que lo veas en Postman, pero la contraseña ya estará encriptada
       usuario: { id: nuevoUsuario._id, email: nuevoUsuario.email } 
     });
 
@@ -45,23 +41,20 @@ export const loginUsuario = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Buscamos si el usuario existe
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
       return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
     }
 
-    // 2. Usamos el método que creamos en el modelo (ya no hace falta importar bcrypt aquí)
     const passwordValida = await usuario.comprobarPassword(password);
     if (!passwordValida) {
       return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
     }
 
-    // 3. Si todo está correcto, generamos la "pulsera VIP" (Token JWT)
     const token = jwt.sign(
-      { id: usuario._id }, // Guardamos el ID del usuario dentro del token
-      process.env.JWT_SECRET, // Firmamos con nuestra palabra secreta del .env
-      { expiresIn: '1d' } // El token caduca en 1 día por seguridad
+      { id: usuario._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
     );
 
     res.status(200).json({ 
@@ -70,12 +63,9 @@ export const loginUsuario = async (req, res) => {
     });
 
   } catch (error) {
-    // 1. Esto va a imprimir el error detallado en tu terminal de VS Code
-    console.log("💥 ERROR REAL EN REGISTRO:", error); 
-    
-    // 2. Esto te va a devolver el motivo exacto en Postman/Thunder Client
+    console.log("💥 ERROR REAL EN LOGIN:", error); 
     res.status(500).json({ 
-      mensaje: 'Error al registrar usuario.',
+      mensaje: 'Error al iniciar sesión.',
       detalle: error.message 
     });
   }
@@ -88,28 +78,95 @@ export const cambiarPassword = async (req, res) => {
   try {
     const { passwordActual, passwordNueva } = req.body;
 
-    // 1. Buscamos al usuario usando el ID que nuestro guardia (verificarToken) guardó en req.usuario
     const usuario = await Usuario.findById(req.usuario.id);
     if (!usuario) {
       return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
     }
 
-    // 2. Comparamos si la contraseña que ingresó como "actual" realmente es la suya
     const passwordCorrecta = await usuario.comprobarPassword(passwordActual);
     if (!passwordCorrecta) {
       return res.status(400).json({ mensaje: 'La contraseña actual es incorrecta.' });
     }
 
-    // 3. Si pasó las pruebas, simplemente le pisamos la contraseña vieja con la nueva
     usuario.password = passwordNueva;
-
-    // 4. ¡Magia! Al hacer .save(), el middleware pre('save') de tu modelo la encripta sola.
     await usuario.save();
 
     res.status(200).json({ mensaje: 'Contraseña actualizada con éxito.' });
 
   } catch (error) {
     console.log("💥 ERROR AL CAMBIAR PASSWORD:", error);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
+
+// ==========================================
+// 4. OBTENER PERFIL DEL ADMINISTRADOR
+// ==========================================
+export const obtenerPerfil = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id).select('-password');
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+    res.status(200).json(usuario);
+  } catch (error) {
+    console.log("💥 ERROR AL OBTENER PERFIL:", error);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
+
+// ==========================================
+// 5. ACTUALIZAR FOTO DE PERFIL (Avatar)
+// ==========================================
+export const actualizarAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ mensaje: 'No se ha proporcionado ninguna imagen.' });
+    }
+
+    const usuario = await Usuario.findById(req.usuario.id);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    usuario.avatar = req.file.path; // O la URL que devuelva tu configuración de Multer/Cloudinary
+    await usuario.save();
+
+    res.status(200).json({
+      mensaje: 'Foto de perfil actualizada con éxito.',
+      avatar: usuario.avatar
+    });
+
+  } catch (error) {
+    console.log("💥 ERROR AL ACTUALIZAR AVATAR:", error);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
+
+// ==========================================
+// 6. ACTUALIZAR INFO DE PERFIL (WhatsApp / Instagram)
+// ==========================================
+export const actualizarInfoPerfil = async (req, res) => {
+  try {
+    const { whatsapp, instagram } = req.body;
+    const usuario = await Usuario.findById(req.usuario.id);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    if (whatsapp !== undefined) usuario.whatsapp = whatsapp;
+    if (instagram !== undefined) usuario.instagram = instagram;
+
+    await usuario.save();
+
+    res.status(200).json({
+      mensaje: 'Información de perfil actualizada con éxito.',
+      whatsapp: usuario.whatsapp,
+      instagram: usuario.instagram
+    });
+  } catch (error) {
+    console.log("💥 ERROR AL ACTUALIZAR INFO PERFIL:", error);
     res.status(500).json({ mensaje: 'Error interno del servidor.' });
   }
 };

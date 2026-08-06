@@ -59,12 +59,6 @@ const Dashboard = () => {
   const [trabajos, setTrabajos] = useState([]);
 
   // ==========================================
-  // ESTADOS DE PAGINACIÓN PARA ÁLBUMES
-  // ==========================================
-  const [paginaActual, setPaginaActual] = useState(1);
-  const trabajosPorPagina = 9; // 9 por página para mantener filas de 3
-
-  // ==========================================
   // ESTADOS PARA SERVICIOS
   // ==========================================
   const [servicios, setServicios] = useState([]);
@@ -76,6 +70,24 @@ const Dashboard = () => {
   const [imagenServicioActual, setImagenServicioActual] = useState('');
   const [idServicioParaEliminar, setIdServicioParaEliminar] = useState(null);
   const [subiendoServicio, setSubiendoServicio] = useState(false);
+
+  // ==========================================
+  // ESTADOS PARA PERFIL Y AJUSTES
+  // ==========================================
+  const [perfil, setPerfil] = useState({
+    avatar: '',
+    whatsapp: '',
+    instagram: '',
+    email: ''
+  });
+  const [nuevaImagen, setNuevaImagen] = useState(null);
+  const [previewImagen, setPreviewImagen] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [instagram, setInstagram] = useState('');
+
+  // Estados para cambiar contraseña
+  const [passwordActual, setPasswordActual] = useState('');
+  const [passwordNueva, setPasswordNueva] = useState('');
 
   // Estados generales de control
   const [cargando, setCargando] = useState(true);
@@ -92,6 +104,7 @@ const Dashboard = () => {
     }
     obtenerTrabajos();
     obtenerServicios();
+    obtenerPerfil();
   }, [token, navigate]);
 
   // Cartel automático
@@ -104,7 +117,7 @@ const Dashboard = () => {
     }
   }, [mensaje]);
 
-  // Obtener trabajos y servicios
+  // Obtener trabajos, servicios y perfil
   const obtenerTrabajos = async () => {
     try {
       const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/trabajos`);
@@ -126,20 +139,76 @@ const Dashboard = () => {
     }
   };
 
-  // ==========================================
-  // LÓGICA DE PAGINACIÓN DE ÁLBUMES
-  // ==========================================
-  const indiceUltimoTrabajo = paginaActual * trabajosPorPagina;
-  const indicePrimerTrabajo = indiceUltimoTrabajo - trabajosPorPagina;
-  const trabajosActuales = trabajos.slice(indicePrimerTrabajo, indiceUltimoTrabajo);
-  const totalPaginas = Math.ceil(trabajos.length / trabajosPorPagina);
-
-  const irPaginaSiguiente = () => {
-    if (paginaActual < totalPaginas) setPaginaActual(paginaActual + 1);
+  const obtenerPerfil = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPerfil(res.data);
+      setWhatsapp(res.data.whatsapp || '');
+      setInstagram(res.data.instagram || '');
+    } catch (error) {
+      console.error("Error al cargar perfil:", error);
+    }
   };
 
-  const irPaginaAnterior = () => {
-    if (paginaActual > 1) setPaginaActual(paginaActual - 1);
+  // ==========================================
+  // LÓGICA DE PERFIL Y AJUSTES
+  // ==========================================
+  const handleCambiarAvatar = async (e) => {
+    e.preventDefault();
+    if (!nuevaImagen) return;
+
+    const formData = new FormData();
+    formData.append('imagen', nuevaImagen);
+
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil/avatar`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setPerfil(prev => ({ ...prev, avatar: res.data.avatar }));
+      setNuevaImagen(null);
+      setPreviewImagen('');
+      setMensaje({ texto: '¡Foto de perfil actualizada con éxito!', tipo: 'exito' });
+      setTimeout(() => window.location.reload(), 1500); // Recarga para actualizar navbar
+    } catch (error) {
+      console.error("Error al cambiar avatar:", error);
+      setMensaje({ texto: error.response?.data?.mensaje || 'Error al actualizar la foto', tipo: 'error' });
+    }
+  };
+
+  const handleGuardarRedes = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil/info`, 
+        { whatsapp, instagram },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMensaje({ texto: '¡Redes sociales actualizadas con éxito!', tipo: 'exito' });
+      obtenerPerfil();
+    } catch (error) {
+      console.error("Error al actualizar redes:", error);
+      setMensaje({ texto: 'Error al actualizar la información', tipo: 'error' });
+    }
+  };
+
+  const handleCambiarPassword = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/cambiar-password`, 
+        { passwordActual, passwordNueva },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMensaje({ texto: '¡Contraseña actualizada con éxito!', tipo: 'exito' });
+      setPasswordActual('');
+      setPasswordNueva('');
+    } catch (error) {
+      console.error("Error al cambiar contraseña:", error);
+      setMensaje({ texto: error.response?.data?.mensaje || 'Error al cambiar la contraseña', tipo: 'error' });
+    }
   };
 
   // ==========================================
@@ -183,7 +252,6 @@ const Dashboard = () => {
     setArchivos([]); 
     setFotosActuales(trabajo.fotos || []); 
     setMensaje({ texto: '', tipo: '' });
-    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -409,7 +477,6 @@ const Dashboard = () => {
             <p className="text-neutral-600 dark:text-neutral-400 text-sm italic mt-1">Agregá o modificá los álbumes y sesiones fotográficas.</p>
           </div>
 
-          {/* FORMULARIO */}
           <form onSubmit={manejarSubmitTrabajo} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-8 md:p-12 mb-16 shadow-xl border-t-4 border-t-azul-logo">
             <div className="border-b border-neutral-300/40 dark:border-neutral-800 pb-8 mb-10">
               <h2 className="text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide mb-2">
@@ -488,7 +555,7 @@ const Dashboard = () => {
             </div>
           </form>
 
-          {/* LISTA DE ÁLBUMES CON PAGINACIÓN */}
+          {/* LISTA DE ÁLBUMES */}
           <div className="space-y-6">
             <h3 className="text-lg text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-widest mb-6">
               Álbumes Publicados <span className="text-azul-logo">({trabajos.length})</span>
@@ -497,73 +564,32 @@ const Dashboard = () => {
             {trabajos.length === 0 ? (
               <p className="text-neutral-500 text-center py-12 text-sm">No hay álbumes publicados todavía.</p>
             ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {trabajosActuales.map((trabajo) => (
-                    <div key={trabajo._id} onClick={() => window.open(`/trabajo/${trabajo._id}`, '_blank')} className="flex flex-col bg-[#78A4CB]/15 dark:bg-neutral-900 cursor-pointer group shadow-lg hover:-translate-y-1 transition-transform duration-300 border-t-2 border-t-azul-logo">
-                      <div className="h-48 bg-cover bg-center w-full" style={{ backgroundImage: `url(${trabajo.fotos?.[0] || ''})` }}></div>
-                      <div className="p-6 flex-grow flex flex-col justify-between">
-                        <div>
-                          <h3 className="text-neutral-900 dark:text-white font-bold text-sm tracking-widest uppercase mb-1">{trabajo.titulo}</h3>
-                          <span className="text-[10px] text-azul-logo uppercase tracking-widest font-bold">{trabajo.categoria || 'General'}</span>
-                        </div>
-                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-neutral-300/40 dark:border-neutral-800">
-                          <span className="text-xs text-neutral-600 dark:text-neutral-400">{trabajo.fotos?.length || 0} fotos</span>
-                          <div className="flex gap-3">
-                            <button onClick={(e) => { e.stopPropagation(); iniciarEdicion(trabajo); }} className="text-neutral-700 dark:text-neutral-300 hover:text-azul-logo text-xs font-bold uppercase cursor-pointer">Editar</button>
-                            <button onClick={(e) => { e.stopPropagation(); setIdParaEliminar(trabajo._id); }} className="text-neutral-700 dark:text-neutral-300 hover:text-red-500 text-xs font-bold uppercase cursor-pointer">Eliminar</button>
-                          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {trabajos.map((trabajo) => (
+                  <div key={trabajo._id} onClick={() => window.open(`/trabajo/${trabajo._id}`, '_blank')} className="flex flex-col bg-[#78A4CB]/15 dark:bg-neutral-900 cursor-pointer group shadow-lg hover:-translate-y-1 transition-transform duration-300 border-t-2 border-t-azul-logo">
+                    <div className="h-48 bg-cover bg-center w-full" style={{ backgroundImage: `url(${trabajo.fotos?.[0] || ''})` }}></div>
+                    <div className="p-6 flex-grow flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-neutral-900 dark:text-white font-bold text-sm tracking-widest uppercase mb-1">{trabajo.titulo}</h3>
+                        <span className="text-[10px] text-azul-logo uppercase tracking-widest font-bold">{trabajo.categoria || 'General'}</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-neutral-300/40 dark:border-neutral-800">
+                        <span className="text-xs text-neutral-600 dark:text-neutral-400">{trabajo.fotos?.length || 0} fotos</span>
+                        <div className="flex gap-3">
+                          <button onClick={(e) => { e.stopPropagation(); iniciarEdicion(trabajo); }} className="text-neutral-700 dark:text-neutral-300 hover:text-azul-logo text-xs font-bold uppercase cursor-pointer">Editar</button>
+                          <button onClick={(e) => { e.stopPropagation(); setIdParaEliminar(trabajo._id); }} className="text-neutral-700 dark:text-neutral-300 hover:text-red-500 text-xs font-bold uppercase cursor-pointer">Eliminar</button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CONTROLES DE PAGINACIÓN */}
-                {totalPaginas > 1 && (
-                  <div className="mt-10 p-6 bg-[#78A4CB]/10 dark:bg-neutral-900/60 border border-neutral-300/40 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold uppercase tracking-wider">
-                      Mostrando {indicePrimerTrabajo + 1} a {Math.min(indiceUltimoTrabajo, trabajos.length)} de {trabajos.length} álbumes
-                    </p>
-                    
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={irPaginaAnterior} 
-                        disabled={paginaActual === 1}
-                        className={`px-4 py-2 text-xs font-bold uppercase tracking-widest border transition-all ${
-                          paginaActual === 1 
-                            ? 'border-neutral-300 dark:border-neutral-800 text-neutral-400 dark:text-neutral-600 cursor-not-allowed' 
-                            : 'border-azul-logo text-azul-logo hover:bg-azul-logo hover:text-white cursor-pointer'
-                        }`}
-                      >
-                        Anterior
-                      </button>
-                      
-                      <div className="flex items-center justify-center px-4 text-xs font-bold text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-white/10">
-                        {paginaActual} / {totalPaginas}
-                      </div>
-
-                      <button 
-                        onClick={irPaginaSiguiente} 
-                        disabled={paginaActual === totalPaginas}
-                        className={`px-4 py-2 text-xs font-bold uppercase tracking-widest border transition-all ${
-                          paginaActual === totalPaginas 
-                            ? 'border-neutral-300 dark:border-neutral-800 text-neutral-400 dark:text-neutral-600 cursor-not-allowed' 
-                            : 'border-azul-logo text-azul-logo hover:bg-azul-logo hover:text-white cursor-pointer'
-                        }`}
-                      >
-                        Siguiente
-                      </button>
                     </div>
                   </div>
-                )}
-              </>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
         {/* ================= SECCIÓN GESTIÓN DE SERVICIOS ================= */}
-        <div className="pt-16">
+        <div className="pt-12">
           <div className="text-center mb-8">
             <h2 className="text-xl md:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
               Servicios
@@ -655,6 +681,131 @@ const Dashboard = () => {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* ========================================================== */}
+        {/* SECCIÓN DE CONFIGURACIÓN DE PERFIL Y AJUSTES               */}
+        {/* ========================================================== */}
+        <div id="ajustes-perfil" className="mt-20 bg-[#78A4CB]/15 dark:bg-neutral-900 p-8 md:p-12 shadow-2xl border-t-4 border-t-azul-logo">
+          <h2 className="text-xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-widest mb-6 border-b border-neutral-300/40 dark:border-neutral-800 pb-4">
+            ⚙️ Configuración de Perfil y Ajustes
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* 1. FOTO DE PERFIL */}
+            <div className="flex flex-col items-center p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Foto de Perfil</h3>
+              
+              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-azul-logo mb-4 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
+                {previewImagen ? (
+                  <img src={previewImagen} alt="Preview" className="w-full h-full object-cover" />
+                ) : perfil.avatar ? (
+                  <img src={perfil.avatar} alt="Avatar Actual" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xl font-bold text-neutral-600 dark:text-neutral-400">
+                    {perfil.email ? perfil.email[0].toUpperCase() : 'A'}
+                  </span>
+                )}
+              </div>
+
+              <form onSubmit={handleCambiarAvatar} className="w-full flex flex-col gap-3">
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files[0]) {
+                      setNuevaImagen(e.target.files[0]);
+                      setPreviewImagen(URL.createObjectURL(e.target.files[0]));
+                    }
+                  }}
+                  className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer"
+                />
+                {nuevaImagen && (
+                  <button type="submit" className="w-full py-2 bg-azul-logo text-white text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity">
+                    Guardar Foto
+                  </button>
+                )}
+              </form>
+            </div>
+
+            {/* 2. REDES SOCIALES (WhatsApp e Instagram actuales y editables) */}
+            <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Redes de Contacto</h3>
+              
+              <form onSubmit={handleGuardarRedes} className="flex flex-col gap-4">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] uppercase font-bold text-neutral-500">WhatsApp</label>
+                    <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
+                      Actual: {perfil.whatsapp || 'No configurado'}
+                    </span>
+                  </div>
+                  <input 
+                    type="text" 
+                    value={whatsapp} 
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="Ej: +5492966..." 
+                    className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] uppercase font-bold text-neutral-500">Instagram</label>
+                    <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
+                      Actual: {perfil.instagram || 'No configurado'}
+                    </span>
+                  </div>
+                  <input 
+                    type="text" 
+                    value={instagram} 
+                    onChange={(e) => setInstagram(e.target.value)}
+                    placeholder="Ej: @tu_fotografia" 
+                    className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                  />
+                </div>
+
+                <button type="submit" className="w-full py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity mt-2">
+                  Actualizar Redes
+                </button>
+              </form>
+            </div>
+
+            {/* 3. CAMBIAR CONTRASEÑA */}
+            <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Seguridad</h3>
+              
+              <form onSubmit={handleCambiarPassword} className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Contraseña Actual</label>
+                  <input 
+                    type="password" 
+                    value={passwordActual} 
+                    onChange={(e) => setPasswordActual(e.target.value)}
+                    placeholder="••••••••" 
+                    required
+                    className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Nueva Contraseña</label>
+                  <input 
+                    type="password" 
+                    value={passwordNueva} 
+                    onChange={(e) => setPasswordNueva(e.target.value)}
+                    placeholder="••••••••" 
+                    required
+                    className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                  />
+                </div>
+                <button type="submit" className="w-full py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-red-700 transition-colors mt-2">
+                  Cambiar Contraseña
+                </button>
+              </form>
+            </div>
+
           </div>
         </div>
 

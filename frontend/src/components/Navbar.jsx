@@ -1,18 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  
+  // Estados para el perfil del administrador y el dropdown de usuario
+  const [usuario, setUsuario] = useState(null);
+  const [dropdownAbierto, setDropdownAbierto] = useState(false);
+  const dropdownRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
 
   const token = localStorage.getItem('token');
-
-  // Si NO estamos en la página de inicio ('/'), forzamos que el navbar actúe como si tuviera scroll
   const esPaginaInterna = location.pathname !== '/';
+
+  // Obtener datos del admin (avatar y email) si hay token
+  useEffect(() => {
+    const obtenerDatosAdmin = async () => {
+      if (!token) return;
+      try {
+        const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUsuario(respuesta.data);
+      } catch (error) {
+        console.error("Error al obtener perfil en navbar:", error);
+      }
+    };
+    obtenerDatosAdmin();
+  }, [token]);
+
+  // Cerrar el dropdown si se hace clic afuera
+  useEffect(() => {
+    const cerrarAfuera = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownAbierto(false);
+      }
+    };
+    document.addEventListener('mousedown', cerrarAfuera);
+    return () => document.removeEventListener('mousedown', cerrarAfuera);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,8 +61,24 @@ const Navbar = () => {
 
   const manejarCerrarSesion = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('ultimaActividad');
+    setDropdownAbierto(false);
     cerrarMenu();
     navigate('/');
+    window.location.reload(); // Recarga limpia para refrescar estados globales
+  };
+
+  // Función para ir al Dashboard y hacer scroll a la sección de ajustes
+  const irAjustesPerfil = () => {
+    setDropdownAbierto(false);
+    cerrarMenu();
+    navigate('/dashboard');
+    setTimeout(() => {
+      const seccionAjustes = document.getElementById('ajustes-perfil');
+      if (seccionAjustes) {
+        seccionAjustes.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 200);
   };
 
   const scrollToSection = (sectionId) => {
@@ -60,7 +107,6 @@ const Navbar = () => {
     }
   };
 
-  // Determinamos si debe verse con estilo sólido (si hay scroll, menú abierto o estamos en otra página)
   const navbarSolido = scrolled || menuAbierto || esPaginaInterna;
 
   return (
@@ -135,22 +181,61 @@ const Navbar = () => {
             </button>
 
             {token ? (
-              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-4 mt-4 md:mt-0">
-                <Link
-                  to="/dashboard"
-                  onClick={cerrarMenu}
-                  className="text-xs font-bold uppercase tracking-[0.15em] text-azul-logo hover:text-neutral-900 dark:hover:text-white transition-colors duration-300 relative group"
-                >
-                  Mi Panel
-                  <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-azul-logo transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-
+              /* ================= AVATAR Y MENÚ DESPLEGABLE ================= */
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={manejarCerrarSesion}
-                  className="text-xs font-bold uppercase tracking-widest text-red-500 border border-red-500/40 px-6 py-2.5 hover:bg-red-600 hover:text-white transition-all duration-300 cursor-pointer"
+                  onClick={() => setDropdownAbierto(!dropdownAbierto)}
+                  className="w-11 h-11 rounded-full overflow-hidden border-2 border-azul-logo focus:outline-none flex items-center justify-center bg-neutral-200 dark:bg-neutral-800 cursor-pointer shadow-md hover:scale-105 transition-transform"
                 >
-                  Salir
+                  {usuario?.avatar ? (
+                    <img src={usuario.avatar} alt="Admin Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-neutral-800 dark:text-white uppercase">
+                      {usuario?.email ? usuario.email[0] : 'A'}
+                    </span>
+                  )}
                 </button>
+
+                {/* Dropdown flotante */}
+                {dropdownAbierto && (
+                  <div className="absolute right-0 md:right-0 mt-3 w-56 bg-white dark:bg-neutral-900 border border-neutral-300/40 dark:border-white/10 shadow-2xl py-2 z-50 text-left">
+                    <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+                      <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Conectado como</p>
+                      <p className="text-xs text-neutral-900 dark:text-white truncate font-medium mt-0.5">{usuario?.email}</p>
+                    </div>
+
+                    <Link 
+                      to="/dashboard" 
+                      onClick={() => { setDropdownAbierto(false); cerrarMenu(); }}
+                      className="block px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    >
+                      📊 Mi Panel
+                    </Link>
+
+                    <button 
+                      onClick={irAjustesPerfil}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                    >
+                      📷 Cambiar Foto / Redes
+                    </button>
+
+                    <button 
+                      onClick={irAjustesPerfil}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                    >
+                      🔑 Cambiar Contraseña
+                    </button>
+
+                    <div className="border-t border-neutral-200 dark:border-neutral-800 mt-1 pt-1">
+                      <button 
+                        onClick={manejarCerrarSesion}
+                        className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                      >
+                        🚪 Cerrar Sesión
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Link
