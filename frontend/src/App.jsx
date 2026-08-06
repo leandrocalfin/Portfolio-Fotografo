@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Inicio from './pages/Inicio';
 import GaleriaCompleta from './pages/GaleriaCompleta';
@@ -8,6 +9,19 @@ import DetalleTrabajo from './pages/DetalleTrabajo';
 import WhatsApp from './components/WhatsApp';
 import Footer from './components/Footer';
 import axios from 'axios';
+
+// ==========================================
+// COMPONENTE PARA FORZAR EL SCROLL ARRIBA
+// ==========================================
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 // ==========================================
 // VIGILANTE GLOBAL DE SESIÓN (INTERCEPTOR)
@@ -28,6 +42,7 @@ axios.interceptors.response.use(
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       {/* Contenedor principal con soporte dinámico para modo claro y oscuro */}
       <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-textos flex flex-col transition-colors duration-300">
         <Navbar />

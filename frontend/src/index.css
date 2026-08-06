@@ -7,6 +7,7 @@
   --color-azul-logo: #1363DF;
   --color-crema-suave: #FBF9F5;
   --color-crema-azulado: #F4F6F9;
+  --color-celeste-custom: #78A4CB; /* 👈 Agregado aquí */
   --font-titulos: "Playfair Display", serif;
   --font-textos: "Inter", sans-serif;
 }

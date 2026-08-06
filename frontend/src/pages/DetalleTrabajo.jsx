@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const DetalleTrabajo = () => {
   const { id } = useParams(); 
-  const navigate = useNavigate(); // <-- Agregamos esto para volver hacia atrás
+  const navigate = useNavigate();
   const [trabajo, setTrabajo] = useState(null);
   const [cargando, setCargando] = useState(true);
 
@@ -12,7 +12,7 @@ const DetalleTrabajo = () => {
   const [fotoIndex, setFotoIndex] = useState(null);
 
   useEffect(() => {
-    window.scrollTo(0, 0); // Que siempre empiece arriba
+    window.scrollTo(0, 0); 
     const obtenerDetalle = async () => {
       try {
         const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/trabajos/${id}`);
@@ -32,7 +32,7 @@ const DetalleTrabajo = () => {
   const cerrarFoto = () => setFotoIndex(null);
 
   const fotoAnterior = (e) => {
-    e.stopPropagation(); // Evita cerrar el visor al clickear la flecha
+    e.stopPropagation();
     setFotoIndex((prev) => (prev === 0 ? trabajo.fotos.length - 1 : prev - 1));
   };
 
@@ -40,11 +40,10 @@ const DetalleTrabajo = () => {
     e.stopPropagation();
     setFotoIndex((prev) => (prev === trabajo.fotos.length - 1 ? 0 : prev + 1));
   };
-  // =============================================
 
   if (cargando) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+      <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 flex items-center justify-center transition-colors duration-300">
         <div className="text-azul-logo text-sm font-bold uppercase tracking-widest animate-pulse">
           Abriendo álbum...
         </div>
@@ -54,9 +53,9 @@ const DetalleTrabajo = () => {
 
   if (!trabajo) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center text-white">
+      <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 flex flex-col items-center justify-center text-neutral-900 dark:text-white transition-colors duration-300">
         <h2 className="text-3xl font-titulos font-bold uppercase mb-4">Álbum no encontrado</h2>
-        <Link to="/" className="text-azul-logo text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
+        <Link to="/" className="text-azul-logo text-xs font-bold uppercase tracking-widest hover:opacity-85 transition-opacity">
           Volver al inicio
         </Link>
       </div>
@@ -64,19 +63,19 @@ const DetalleTrabajo = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 pt-32 pb-24 px-6 relative">
+    <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 pt-32 pb-24 px-6 relative transition-colors duration-300">
       <div className="max-w-5xl mx-auto">
         
         {/* Cabecera del Álbum */}
-        <div className="mb-16 border-b border-white/10 pb-12 text-center">
+        <div className="mb-16 border-b border-neutral-300 dark:border-white/10 pb-12 text-center transition-colors">
           <span className="text-azul-logo text-xs tracking-[0.2em] uppercase font-bold mb-4 block">
             {trabajo.categoria || "Sesión Fotográfica"}
           </span>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-titulos font-bold text-white mb-6 uppercase inline-block relative">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-titulos font-bold text-neutral-900 dark:text-white mb-6 uppercase inline-block relative transition-colors">
             {trabajo.titulo}
             <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-1 bg-azul-logo"></span>
           </h1>
-          <p className="text-neutral-400 text-base md:text-lg leading-relaxed font-textos max-w-3xl mx-auto mt-8">
+          <p className="text-neutral-700 dark:text-neutral-400 text-base md:text-lg leading-relaxed font-textos max-w-3xl mx-auto mt-8 transition-colors">
             {trabajo.descripcion}
           </p>
 
@@ -87,7 +86,7 @@ const DetalleTrabajo = () => {
                 href={trabajo.linkDrive} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-block text-xs font-bold uppercase tracking-widest text-white border border-azul-logo bg-azul-logo px-10 py-4 hover:bg-transparent hover:text-azul-logo transition-all duration-300"
+                className="inline-block text-xs font-bold uppercase tracking-widest text-white border border-azul-logo bg-azul-logo px-10 py-4 hover:bg-transparent hover:text-azul-logo dark:hover:text-white transition-all duration-300 shadow-sm"
               >
                 Ver Álbum Completo en Drive
               </a>
@@ -95,13 +94,13 @@ const DetalleTrabajo = () => {
           )}
         </div>
 
-        {/* Grilla con las fotos (ahora son clickeables) */}
+        {/* Grilla con las fotos */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {trabajo.fotos && trabajo.fotos.map((foto, index) => (
             <div 
               key={index} 
-              onClick={() => abrirFoto(index)} // Abre la foto grande
-              className={`group overflow-hidden bg-neutral-900 border border-white/5 rounded-sm relative cursor-pointer ${index === 0 ? 'md:col-span-2 aspect-video' : 'aspect-[4/3]'}`}
+              onClick={() => abrirFoto(index)}
+              className={`group overflow-hidden bg-[#78A4CB]/15 dark:bg-neutral-900 border border-neutral-300/40 dark:border-white/5 rounded-sm relative cursor-pointer shadow-md ${index === 0 ? 'md:col-span-2 aspect-video' : 'aspect-[4/3]'}`}
             >
               <img 
                 src={foto} 
@@ -110,7 +109,7 @@ const DetalleTrabajo = () => {
               />
               <div className="absolute inset-0 bg-neutral-950/10 group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
               
-              {/* Ícono de Lupa (Aparece sutilmente al hacer hover) */}
+              {/* Ícono de Lupa */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 <span className="bg-black/50 text-white rounded-full p-4 backdrop-blur-sm shadow-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -122,11 +121,11 @@ const DetalleTrabajo = () => {
           ))}
         </div>
 
-        {/* Botón para volver (Ubicado al final de la página) */}
+        {/* Botón para volver */}
         <div className="mt-16 flex justify-center">
           <button 
             onClick={() => navigate(-1)} 
-            className="inline-flex items-center text-neutral-400 border border-neutral-800 px-8 py-3 hover:border-azul-logo hover:text-azul-logo transition-colors text-xs uppercase tracking-widest font-bold group"
+            className="inline-flex items-center text-neutral-700 dark:text-neutral-400 border border-neutral-300 dark:border-neutral-800 px-8 py-3 hover:border-azul-logo hover:text-azul-logo dark:hover:text-azul-logo transition-colors text-xs uppercase tracking-widest font-bold group shadow-sm"
           >
             <span className="mr-3 transform group-hover:-translate-x-2 transition-transform duration-300">←</span> Volver Atrás
           </button>
@@ -134,7 +133,7 @@ const DetalleTrabajo = () => {
 
       </div>
 
-      {/* ======== MODAL VISOR DE IMÁGENES GIGANTE ======== */}
+      {/* ======== MODAL VISOR DE IMÁGENES ======== */}
       {fotoIndex !== null && (
         <div 
           className="fixed inset-0 z-[100] bg-neutral-950/95 flex items-center justify-center p-4 backdrop-blur-md"
