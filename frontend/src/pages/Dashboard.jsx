@@ -49,12 +49,12 @@ const Dashboard = () => {
   // ==========================================
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [categoria, setCategoria] = useState('Bodas'); 
+  const [categoria, setCategoria] = useState('Bodas');
   const [linkDrive, setLinkDrive] = useState('');
   const [archivos, setArchivos] = useState([]);
-  
+
   const [editandoId, setEditandoId] = useState(null);
-  const [fotosActuales, setFotosActuales] = useState([]); 
+  const [fotosActuales, setFotosActuales] = useState([]);
   const [idParaEliminar, setIdParaEliminar] = useState(null);
   const [trabajos, setTrabajos] = useState([]);
 
@@ -121,7 +121,7 @@ const Dashboard = () => {
   const obtenerTrabajos = async () => {
     try {
       const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/trabajos`);
-      setTrabajos(respuesta.data.trabajos); 
+      setTrabajos(respuesta.data.trabajos);
       setCargando(false);
     } catch (error) {
       console.error("Error al cargar trabajos:", error);
@@ -164,7 +164,7 @@ const Dashboard = () => {
 
     try {
       const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil/avatar`, formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -183,7 +183,7 @@ const Dashboard = () => {
   const handleGuardarRedes = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil/info`, 
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil/info`,
         { whatsapp, instagram },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -198,7 +198,7 @@ const Dashboard = () => {
   const handleCambiarPassword = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/cambiar-password`, 
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/cambiar-password`,
         { passwordActual, passwordNueva },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -225,7 +225,7 @@ const Dashboard = () => {
     if (!editandoId) {
       if (seleccionados.length < 5 || seleccionados.length > 7) {
         setMensaje({ texto: `Debes seleccionar entre 5 y 7 imágenes. Elegiste: ${seleccionados.length}`, tipo: 'error' });
-        e.target.value = null; 
+        e.target.value = null;
         setArchivos([]);
         return;
       }
@@ -233,7 +233,7 @@ const Dashboard = () => {
       const totalFotos = fotosActuales.length + seleccionados.length;
       if (totalFotos < 5 || totalFotos > 7) {
         setMensaje({ texto: `El álbum debe tener entre 5 y 7 fotos. (Total actual: ${totalFotos}).`, tipo: 'error' });
-        e.target.value = null; 
+        e.target.value = null;
         setArchivos([]);
         return;
       }
@@ -249,8 +249,8 @@ const Dashboard = () => {
     setCategoria(trabajo.categoria || 'Bodas');
     setLinkDrive(trabajo.linkDrive || '');
     setEditandoId(trabajo._id);
-    setArchivos([]); 
-    setFotosActuales(trabajo.fotos || []); 
+    setArchivos([]);
+    setFotosActuales(trabajo.fotos || []);
     setMensaje({ texto: '', tipo: '' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -262,9 +262,9 @@ const Dashboard = () => {
     setLinkDrive('');
     setEditandoId(null);
     setArchivos([]);
-    setFotosActuales([]); 
+    setFotosActuales([]);
     const fileInput = document.getElementById('file-input');
-    if(fileInput) fileInput.value = null;
+    if (fileInput) fileInput.value = null;
   };
 
   const sacarFotoActual = (indexParaBorrar) => {
@@ -282,7 +282,7 @@ const Dashboard = () => {
     formData.append('linkDrive', linkDrive);
 
     archivos.forEach((archivo) => {
-      formData.append('imagenes', archivo); 
+      formData.append('imagenes', archivo);
     });
 
     if (editandoId) {
@@ -307,9 +307,9 @@ const Dashboard = () => {
       obtenerTrabajos();
     } catch (error) {
       console.error("Error al guardar trabajo:", error);
-      const textoError = error.response?.data?.errores?.[0] 
-                    || error.response?.data?.mensaje 
-                    || 'Error al procesar la solicitud.';
+      const textoError = error.response?.data?.errores?.[0]
+        || error.response?.data?.mensaje
+        || 'Error al procesar la solicitud.';
       setMensaje({ texto: textoError, tipo: 'error' });
     } finally {
       setSubiendo(false);
@@ -421,7 +421,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 pt-20 pb-24 px-6 relative z-10 transition-colors duration-300">
-      
+
       {/* ================= MODAL ELIMINAR ÁLBUM ================= */}
       {idParaEliminar && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
@@ -452,13 +452,13 @@ const Dashboard = () => {
 
       {/* ================= CARTEL FLOTANTE ================= */}
       {mensaje.texto && (
-        <div className={`fixed bottom-10 right-10 z-[100] px-8 py-5 shadow-2xl border flex items-center gap-4 animate-bounce ${mensaje.tipo === 'exito' ? 'bg-[#78A4CB]/30 dark:bg-neutral-900 border-azul-logo/40 text-neutral-900 dark:text-white' : 'bg-red-950 border-red-500/50 text-red-200'}`}>
+        <div className={`fixed top-28 right-10 z-[100] px-8 py-5 shadow-2xl border flex items-center gap-4 animate-bounce ${mensaje.tipo === 'exito' ? 'bg-[#78A4CB]/30 dark:bg-neutral-900 border-azul-logo/40 text-neutral-900 dark:text-white' : 'bg-red-950 border-red-500/50 text-red-200'}`}>
           <span className="text-xs font-bold uppercase tracking-widest">{mensaje.texto}</span>
         </div>
       )}
 
       <div className="max-w-7xl mx-auto space-y-2">
-        
+
         {/* DISEÑO MEJORADO PARA EL TÍTULO DEL PANEL */}
         <div className="text-center pb-8 pt-10">
           <div className="inline-block border-b-2 border-t-2 border-azul-logo/30 py-3 px-8 mb-2">
@@ -519,14 +519,14 @@ const Dashboard = () => {
               <div className="lg:col-span-7 flex flex-col justify-between">
                 <div>
                   <label className="block text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase tracking-widest mb-2">Imágenes</label>
-                  
+
                   {editandoId && fotosActuales.length > 0 && (
                     <div className="mb-6">
                       <span className="text-[10px] text-neutral-700 dark:text-neutral-300 uppercase tracking-widest font-bold block mb-3">Imágenes Conservadas ({fotosActuales.length})</span>
                       <div className="flex gap-3 overflow-x-auto pb-2">
                         {fotosActuales.map((foto, index) => (
                           <div key={index} className="relative group flex-shrink-0">
-                            <img src={foto} alt={`Actual ${index+1}`} className="w-20 h-20 object-cover shadow-sm border border-azul-logo/30" />
+                            <img src={foto} alt={`Actual ${index + 1}`} className="w-20 h-20 object-cover shadow-sm border border-azul-logo/30" />
                             <button type="button" onClick={() => sacarFotoActual(index)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] cursor-pointer">✕</button>
                           </div>
                         ))}
@@ -619,15 +619,15 @@ const Dashboard = () => {
               <div className="lg:col-span-6 flex flex-col justify-between">
                 <div>
                   <label className="block text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase tracking-widest mb-2">Imagen del Servicio</label>
-                  
+
                   <div className="border-2 border-dashed border-azul-logo/40 bg-white/70 dark:bg-neutral-950 flex flex-col items-center justify-center text-center relative h-[140px]">
-                    <input 
-                      id="file-servicio" 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => setImagenServicio(e.target.files[0])} 
-                      required={!editandoServicioId} 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                    <input
+                      id="file-servicio"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setImagenServicio(e.target.files[0])}
+                      required={!editandoServicioId}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                     <div className="pointer-events-none px-6">
                       <p className="text-neutral-900 dark:text-white font-bold tracking-widest text-xs mb-1">
@@ -693,11 +693,11 @@ const Dashboard = () => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
+
             {/* 1. FOTO DE PERFIL */}
             <div className="flex flex-col items-center p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
               <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Foto de Perfil</h3>
-              
+
               <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-azul-logo mb-4 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
                 {previewImagen ? (
                   <img src={previewImagen} alt="Preview" className="w-full h-full object-cover" />
@@ -711,8 +711,8 @@ const Dashboard = () => {
               </div>
 
               <form onSubmit={handleCambiarAvatar} className="w-full flex flex-col gap-3">
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   accept="image/*"
                   onChange={(e) => {
                     if (e.target.files[0]) {
@@ -733,7 +733,7 @@ const Dashboard = () => {
             {/* 2. REDES SOCIALES (WhatsApp e Instagram actuales y editables) */}
             <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
               <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Redes de Contacto</h3>
-              
+
               <form onSubmit={handleGuardarRedes} className="flex flex-col gap-4">
                 <div>
                   <div className="flex justify-between items-center mb-1">
@@ -742,11 +742,11 @@ const Dashboard = () => {
                       Actual: {perfil.whatsapp || 'No configurado'}
                     </span>
                   </div>
-                  <input 
-                    type="text" 
-                    value={whatsapp} 
+                  <input
+                    type="text"
+                    value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="Ej: +5492966..." 
+                    placeholder="Ej: +5492966..."
                     className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
                   />
                 </div>
@@ -758,11 +758,11 @@ const Dashboard = () => {
                       Actual: {perfil.instagram || 'No configurado'}
                     </span>
                   </div>
-                  <input 
-                    type="text" 
-                    value={instagram} 
+                  <input
+                    type="text"
+                    value={instagram}
                     onChange={(e) => setInstagram(e.target.value)}
-                    placeholder="Ej: @tu_fotografia" 
+                    placeholder="Ej: @tu_fotografia"
                     className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
                   />
                 </div>
@@ -776,26 +776,26 @@ const Dashboard = () => {
             {/* 3. CAMBIAR CONTRASEÑA */}
             <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
               <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Seguridad</h3>
-              
+
               <form onSubmit={handleCambiarPassword} className="flex flex-col gap-4">
                 <div>
                   <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Contraseña Actual</label>
-                  <input 
-                    type="password" 
-                    value={passwordActual} 
+                  <input
+                    type="password"
+                    value={passwordActual}
                     onChange={(e) => setPasswordActual(e.target.value)}
-                    placeholder="••••••••" 
+                    placeholder="••••••••"
                     required
                     className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
                   />
                 </div>
                 <div>
                   <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Nueva Contraseña</label>
-                  <input 
-                    type="password" 
-                    value={passwordNueva} 
+                  <input
+                    type="password"
+                    value={passwordNueva}
                     onChange={(e) => setPasswordNueva(e.target.value)}
-                    placeholder="••••••••" 
+                    placeholder="••••••••"
                     required
                     className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
                   />
