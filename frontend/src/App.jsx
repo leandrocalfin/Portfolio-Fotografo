@@ -27,6 +27,8 @@ const ScrollManager = () => {
   useEffect(() => {
     const sectionId = location.state?.scrollTo;
 
+    // Si navegamos normalmente a una página,
+    // simplemente comenzamos arriba.
     if (!sectionId) {
       window.scrollTo({
         top: 0,
@@ -38,35 +40,20 @@ const ScrollManager = () => {
     }
 
     let cancelado = false;
-    let timeoutFinal;
-    let intervalo;
+    let intervalo = null;
+    let timeoutFinal = null;
 
     const compensacion = 150;
 
     const posicionarSeccion = () => {
       if (cancelado) return false;
 
-      // Servicios tiene carga asíncrona.
-      // Esperamos a que termine antes de empezar.
-      if (
-        sectionId === "servicios" ||
-        sectionId === "contacto"
-      ) {
-        const servicios =
-          document.getElementById("servicios");
+      const section = document.getElementById(sectionId);
 
-        if (
-          !servicios ||
-          servicios.dataset.cargando === "true"
-        ) {
-          return false;
-        }
+      // Esperamos solamente hasta que React monte la sección.
+      if (!section) {
+        return false;
       }
-
-      const section =
-        document.getElementById(sectionId);
-
-      if (!section) return false;
 
       if (sectionId === "inicio") {
         window.scrollTo({
@@ -78,14 +65,16 @@ const ScrollManager = () => {
       }
 
       const titulo =
-        section.querySelector(".text-center") ||
-        section;
+        section.querySelector(".text-center") || section;
 
       const y =
         titulo.getBoundingClientRect().top +
         window.scrollY -
         compensacion;
 
+      // Movimiento inmediato.
+      // Evita mostrar Inicio durante un segundo
+      // antes de bajar a Servicios o Contacto.
       window.scrollTo({
         top: y,
         behavior: "auto",
@@ -94,62 +83,39 @@ const ScrollManager = () => {
       return true;
     };
 
-    const esperarSeccion = () => {
+    const esperarMontaje = () => {
       if (cancelado) return;
 
-      const listo = posicionarSeccion();
+      const existe = posicionarSeccion();
 
-      if (!listo) {
-        requestAnimationFrame(esperarSeccion);
+      if (!existe) {
+        requestAnimationFrame(esperarMontaje);
         return;
       }
 
       /*
-        IMPORTANTE:
-        Durante los próximos 2 segundos seguimos
-        corrigiendo la posición.
-
-        Si UltimosTrabajos, imágenes, Swiper, etc.
-        cambian la altura de la página, el scroll
-        vuelve automáticamente al lugar correcto.
+        Una vez que llegamos a la sección,
+        seguimos corrigiendo la posición durante
+        un pequeño período mientras React,
+        imágenes, Swiper y datos de la API
+        terminan de acomodar la página.
       */
+
       intervalo = setInterval(() => {
         posicionarSeccion();
       }, 100);
 
       timeoutFinal = setTimeout(() => {
-        clearInterval(intervalo);
-
-        // Última corrección cuando el layout
-        // ya debería estar completamente estable.
-        posicionarSeccion();
-
-        // Ahora sí hacemos un pequeño scroll suave final.
-        const section =
-          document.getElementById(sectionId);
-
-        if (
-          section &&
-          sectionId !== "inicio"
-        ) {
-          const titulo =
-            section.querySelector(".text-center") ||
-            section;
-
-          const y =
-            titulo.getBoundingClientRect().top +
-            window.scrollY -
-            compensacion;
-
-          window.scrollTo({
-            top: y,
-            behavior: "smooth",
-          });
+        if (intervalo) {
+          clearInterval(intervalo);
         }
+
+        // Posición definitiva.
+        posicionarSeccion();
       }, 2000);
     };
 
-    requestAnimationFrame(esperarSeccion);
+    requestAnimationFrame(esperarMontaje);
 
     return () => {
       cancelado = true;
@@ -182,6 +148,8 @@ axios.interceptors.response.use(
         error.response.status === 403)
     ) {
       localStorage.removeItem("token");
+      localStorage.removeItem("ultimaActividad");
+
       window.location.href = "/login";
     }
 
@@ -199,7 +167,6 @@ function App() {
       <ScrollManager />
 
       <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-textos flex flex-col transition-colors duration-300">
-        
         <Navbar />
 
         <main className="flex-grow">

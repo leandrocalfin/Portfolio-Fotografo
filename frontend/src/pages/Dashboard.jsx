@@ -5,7 +5,7 @@ import axios from 'axios';
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // ==========================================
   // TEMPORIZADOR DE INACTIVIDAD ROBUSTO
   // ==========================================
@@ -46,28 +46,28 @@ const Dashboard = () => {
   }, [navigate]);
 
   useEffect(() => {
-  if (location.state?.scrollTo !== "ajustes-perfil") {
-    return;
-  }
-
-  const timer = setTimeout(() => {
-    const seccion = document.getElementById("ajustes-perfil");
-
-    if (seccion) {
-      const y =
-        seccion.getBoundingClientRect().top +
-        window.scrollY -
-        120;
-
-      window.scrollTo({
-        top: y,
-        behavior: "smooth"
-      });
+    if (location.state?.scrollTo !== "ajustes-perfil") {
+      return;
     }
-  }, 300);
 
-  return () => clearTimeout(timer);
-}, [location.state]);
+    const timer = setTimeout(() => {
+      const seccion = document.getElementById("ajustes-perfil");
+
+      if (seccion) {
+        const y =
+          seccion.getBoundingClientRect().top +
+          window.scrollY -
+          120;
+
+        window.scrollTo({
+          top: y,
+          behavior: "smooth"
+        });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [location.state]);
 
   // ==========================================
   // ESTADOS PARA TRABAJOS / ÁLBUMES
@@ -549,7 +549,7 @@ const Dashboard = () => {
         </div>
 
         {/* ================= SECCIÓN GESTIÓN DE ÁLBUMES / TRABAJOS ================= */}
-        <div>
+        <div id="admin-galeria">
           <div className="text-center mb-8">
             <h2 className="text-xl md:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
               Galería
@@ -669,7 +669,7 @@ const Dashboard = () => {
         </div>
 
         {/* ================= SECCIÓN GESTIÓN DE SERVICIOS ================= */}
-        <div className="pt-12">
+        <div id="admin-servicios" className="pt-12" >
           <div className="text-center mb-8">
             <h2 className="text-xl md:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
               Servicios
