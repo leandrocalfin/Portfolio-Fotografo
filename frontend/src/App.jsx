@@ -142,15 +142,22 @@ axios.interceptors.response.use(
     return response;
   },
   (error) => {
+    const status = error.response?.status;
+    const token = localStorage.getItem("token");
+
+    // Solo mandar al login si HABÍA una sesión iniciada
+    // y ese token dejó de ser válido.
     if (
-      error.response &&
-      (error.response.status === 401 ||
-        error.response.status === 403)
+      token &&
+      (status === 401 || status === 403)
     ) {
       localStorage.removeItem("token");
       localStorage.removeItem("ultimaActividad");
 
-      window.location.href = "/login";
+      // Evitamos recargar /login una y otra vez
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
 
     return Promise.reject(error);
