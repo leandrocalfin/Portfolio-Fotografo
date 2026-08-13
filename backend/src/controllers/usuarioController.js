@@ -88,6 +88,12 @@ export const cambiarPassword = async (req, res) => {
       return res.status(400).json({ mensaje: 'La contraseña actual es incorrecta.' });
     }
 
+    if (passwordActual === passwordNueva) {
+      return res.status(400).json({
+        mensaje: 'La nueva contraseña debe ser diferente a la contraseña actual.'
+      });
+    }
+
     usuario.password = passwordNueva;
     await usuario.save();
 

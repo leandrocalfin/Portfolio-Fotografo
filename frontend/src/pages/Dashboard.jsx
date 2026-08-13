@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const Dashboard = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-
+  
   // ==========================================
   // TEMPORIZADOR DE INACTIVIDAD ROBUSTO
   // ==========================================
@@ -43,6 +44,30 @@ const Dashboard = () => {
       window.removeEventListener('click', actualizarActividad);
     };
   }, [navigate]);
+
+  useEffect(() => {
+  if (location.state?.scrollTo !== "ajustes-perfil") {
+    return;
+  }
+
+  const timer = setTimeout(() => {
+    const seccion = document.getElementById("ajustes-perfil");
+
+    if (seccion) {
+      const y =
+        seccion.getBoundingClientRect().top +
+        window.scrollY -
+        120;
+
+      window.scrollTo({
+        top: y,
+        behavior: "smooth"
+      });
+    }
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [location.state]);
 
   // ==========================================
   // ESTADOS PARA TRABAJOS / ÁLBUMES
@@ -88,6 +113,7 @@ const Dashboard = () => {
   // Estados para cambiar contraseña
   const [passwordActual, setPasswordActual] = useState('');
   const [passwordNueva, setPasswordNueva] = useState('');
+  const [confirmarPassword, setConfirmarPassword] = useState('');
 
   // Estados generales de control
   const [cargando, setCargando] = useState(true);
@@ -180,34 +206,88 @@ const Dashboard = () => {
     }
   };
 
-  const handleGuardarRedes = async (e) => {
+  const handleGuardarWhatsapp = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil/info`,
-        { whatsapp, instagram },
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/usuarios/perfil/info`,
+        { whatsapp },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMensaje({ texto: '¡Redes sociales actualizadas con éxito!', tipo: 'exito' });
-      obtenerPerfil();
+
+      setPerfil((prev) => ({ ...prev, whatsapp: res.data.whatsapp }));
+      setMensaje({ texto: '¡WhatsApp actualizado con éxito!', tipo: 'exito' });
     } catch (error) {
-      console.error("Error al actualizar redes:", error);
-      setMensaje({ texto: 'Error al actualizar la información', tipo: 'error' });
+      console.error("Error al actualizar WhatsApp:", error);
+      setMensaje({
+        texto: error.response?.data?.mensaje || 'Error al actualizar WhatsApp',
+        tipo: 'error'
+      });
+    }
+  };
+
+  const handleGuardarInstagram = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/usuarios/perfil/info`,
+        { instagram },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setPerfil((prev) => ({ ...prev, instagram: res.data.instagram }));
+      setMensaje({ texto: '¡Instagram actualizado con éxito!', tipo: 'exito' });
+    } catch (error) {
+      console.error("Error al actualizar Instagram:", error);
+      setMensaje({
+        texto: error.response?.data?.mensaje || 'Error al actualizar Instagram',
+        tipo: 'error'
+      });
     }
   };
 
   const handleCambiarPassword = async (e) => {
     e.preventDefault();
+
+    if (passwordNueva !== confirmarPassword) {
+      setMensaje({ texto: 'Las contraseñas nuevas no coinciden.', tipo: 'error' });
+      return;
+    }
+
+    const passwordSegura =
+      passwordNueva.length >= 10 &&
+      /[a-z]/.test(passwordNueva) &&
+      /[A-Z]/.test(passwordNueva) &&
+      /[0-9]/.test(passwordNueva) &&
+      /[^A-Za-z0-9]/.test(passwordNueva);
+
+    if (!passwordSegura) {
+      setMensaje({
+        texto: 'La contraseña debe tener al menos 10 caracteres, mayúscula, minúscula, número y símbolo.',
+        tipo: 'error'
+      });
+      return;
+    }
+
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/cambiar-password`,
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/usuarios/cambiar-password`,
         { passwordActual, passwordNueva },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setMensaje({ texto: '¡Contraseña actualizada con éxito!', tipo: 'exito' });
       setPasswordActual('');
       setPasswordNueva('');
+      setConfirmarPassword('');
     } catch (error) {
       console.error("Error al cambiar contraseña:", error);
-      setMensaje({ texto: error.response?.data?.mensaje || 'Error al cambiar la contraseña', tipo: 'error' });
+      setMensaje({
+        texto: error.response?.data?.mensaje || 'Error al cambiar la contraseña',
+        tipo: 'error'
+      });
     }
   };
 
@@ -687,125 +767,160 @@ const Dashboard = () => {
         {/* ========================================================== */}
         {/* SECCIÓN DE CONFIGURACIÓN DE PERFIL Y AJUSTES               */}
         {/* ========================================================== */}
-        <div id="ajustes-perfil" className="mt-20 bg-[#78A4CB]/15 dark:bg-neutral-900 p-8 md:p-12 shadow-2xl border-t-4 border-t-azul-logo">
-          <h2 className="text-xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-widest mb-6 border-b border-neutral-300/40 dark:border-neutral-800 pb-4">
-            ⚙️ Configuración de Perfil y Ajustes
-          </h2>
+        <div id="ajustes-perfil" className="pt-12 mt-8">
+          <div className="text-center mb-8">
+            <h2 className="text-xl md:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
+              Configurar Perfil
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 text-sm italic mt-1">
+              Administrá tu foto de perfil, datos de contacto y seguridad de la cuenta.
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-8 md:p-12 shadow-2xl border-t-4 border-t-azul-logo">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-            {/* 1. FOTO DE PERFIL */}
-            <div className="flex flex-col items-center p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Foto de Perfil</h3>
+              {/* 1. FOTO DE PERFIL */}
+              <div className="flex flex-col items-center p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Foto de Perfil</h3>
 
-              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-azul-logo mb-4 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
-                {previewImagen ? (
-                  <img src={previewImagen} alt="Preview" className="w-full h-full object-cover" />
-                ) : perfil.avatar ? (
-                  <img src={perfil.avatar} alt="Avatar Actual" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xl font-bold text-neutral-600 dark:text-neutral-400">
-                    {perfil.email ? perfil.email[0].toUpperCase() : 'A'}
-                  </span>
-                )}
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-azul-logo mb-4 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
+                  {previewImagen ? (
+                    <img src={previewImagen} alt="Preview" className="w-full h-full object-cover" />
+                  ) : perfil.avatar ? (
+                    <img src={perfil.avatar} alt="Avatar Actual" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl font-bold text-neutral-600 dark:text-neutral-400">
+                      {perfil.email ? perfil.email[0].toUpperCase() : 'A'}
+                    </span>
+                  )}
+                </div>
+
+                <form onSubmit={handleCambiarAvatar} className="w-full flex flex-col gap-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files[0]) {
+                        setNuevaImagen(e.target.files[0]);
+                        setPreviewImagen(URL.createObjectURL(e.target.files[0]));
+                      }
+                    }}
+                    className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer"
+                  />
+                  {nuevaImagen && (
+                    <button type="submit" className="w-full py-2 bg-azul-logo text-white text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity">
+                      Guardar Foto
+                    </button>
+                  )}
+                </form>
               </div>
 
-              <form onSubmit={handleCambiarAvatar} className="w-full flex flex-col gap-3">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    if (e.target.files[0]) {
-                      setNuevaImagen(e.target.files[0]);
-                      setPreviewImagen(URL.createObjectURL(e.target.files[0]));
-                    }
-                  }}
-                  className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer"
-                />
-                {nuevaImagen && (
-                  <button type="submit" className="w-full py-2 bg-azul-logo text-white text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity">
-                    Guardar Foto
+              {/* 2. REDES DE CONTACTO */}
+              <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-6">Redes de Contacto</h3>
+
+                <form onSubmit={handleGuardarWhatsapp} className="flex flex-col gap-3 mb-8">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-[10px] uppercase font-bold text-neutral-500">WhatsApp</label>
+                      <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
+                        Actual: {perfil.whatsapp || 'No configurado'}
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      value={whatsapp}
+                      onChange={(e) => setWhatsapp(e.target.value)}
+                      placeholder="Ej: +5492966..."
+                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                    />
+                  </div>
+
+                  <button type="submit" className="w-full py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity">
+                    Guardar WhatsApp
                   </button>
-                )}
-              </form>
-            </div>
+                </form>
 
-            {/* 2. REDES SOCIALES (WhatsApp e Instagram actuales y editables) */}
-            <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Redes de Contacto</h3>
-
-              <form onSubmit={handleGuardarRedes} className="flex flex-col gap-4">
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-[10px] uppercase font-bold text-neutral-500">WhatsApp</label>
-                    <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
-                      Actual: {perfil.whatsapp || 'No configurado'}
-                    </span>
+                <form onSubmit={handleGuardarInstagram} className="flex flex-col gap-3">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-[10px] uppercase font-bold text-neutral-500">Instagram</label>
+                      <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
+                        Actual: {perfil.instagram || 'No configurado'}
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      value={instagram}
+                      onChange={(e) => setInstagram(e.target.value)}
+                      placeholder="Ej: @tu_fotografia"
+                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="Ej: +5492966..."
-                    className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                  />
-                </div>
 
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-[10px] uppercase font-bold text-neutral-500">Instagram</label>
-                    <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
-                      Actual: {perfil.instagram || 'No configurado'}
-                    </span>
+                  <button type="submit" className="w-full py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity">
+                    Guardar Instagram
+                  </button>
+                </form>
+              </div>
+
+              {/* 3. SEGURIDAD */}
+              <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Seguridad</h3>
+
+                <form onSubmit={handleCambiarPassword} className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Contraseña Actual</label>
+                    <input
+                      type="password"
+                      value={passwordActual}
+                      onChange={(e) => setPasswordActual(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      required
+                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={instagram}
-                    onChange={(e) => setInstagram(e.target.value)}
-                    placeholder="Ej: @tu_fotografia"
-                    className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                  />
-                </div>
 
-                <button type="submit" className="w-full py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity mt-2">
-                  Actualizar Redes
-                </button>
-              </form>
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Nueva Contraseña</label>
+                    <input
+                      type="password"
+                      value={passwordNueva}
+                      onChange={(e) => setPasswordNueva(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      minLength={10}
+                      required
+                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                    />
+                    <p className="text-[10px] text-neutral-500 mt-2 leading-relaxed">
+                      Mínimo 10 caracteres, con mayúscula, minúscula, número y símbolo.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Confirmar Nueva Contraseña</label>
+                    <input
+                      type="password"
+                      value={confirmarPassword}
+                      onChange={(e) => setConfirmarPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      minLength={10}
+                      required
+                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                    />
+                  </div>
+
+                  <button type="submit" className="w-full py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-red-700 transition-colors mt-2">
+                    Cambiar Contraseña
+                  </button>
+                </form>
+              </div>
+
             </div>
-
-            {/* 3. CAMBIAR CONTRASEÑA */}
-            <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Seguridad</h3>
-
-              <form onSubmit={handleCambiarPassword} className="flex flex-col gap-4">
-                <div>
-                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Contraseña Actual</label>
-                  <input
-                    type="password"
-                    value={passwordActual}
-                    onChange={(e) => setPasswordActual(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Nueva Contraseña</label>
-                  <input
-                    type="password"
-                    value={passwordNueva}
-                    onChange={(e) => setPasswordNueva(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                  />
-                </div>
-                <button type="submit" className="w-full py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-red-700 transition-colors mt-2">
-                  Cambiar Contraseña
-                </button>
-              </form>
-            </div>
-
           </div>
         </div>
 

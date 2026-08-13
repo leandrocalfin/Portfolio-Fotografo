@@ -186,25 +186,15 @@ const Navbar = () => {
   // ==========================================
 
   const irAjustesPerfil = () => {
-    setDropdownAbierto(false);
+  setDropdownAbierto(false);
+  cerrarMenu();
 
-    cerrarMenu();
-
-    navigate("/dashboard");
-
-    setTimeout(() => {
-      const seccionAjustes =
-        document.getElementById(
-          "ajustes-perfil"
-        );
-
-      if (seccionAjustes) {
-        seccionAjustes.scrollIntoView({
-          behavior: "smooth",
-        });
-      }
-    }, 200);
-  };
+  navigate("/dashboard", {
+    state: {
+      scrollTo: "ajustes-perfil"
+    }
+  });
+};
 
   const navbarSolido =
     scrolled ||
@@ -214,8 +204,8 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${navbarSolido
-          ? "bg-crema-suave dark:bg-neutral-950 border-b border-neutral-300/60 dark:border-white/5 shadow-md"
-          : "bg-transparent border-transparent pt-4"
+        ? "bg-crema-suave dark:bg-neutral-950 border-b border-neutral-300/60 dark:border-white/5 shadow-md"
+        : "bg-transparent border-transparent pt-4"
         }`}
     >
       <div className="max-w-7xl mx-auto px-6">
@@ -244,8 +234,8 @@ const Navbar = () => {
 
             <span
               className={`text-xl md:text-2xl tracking-widest font-bold transition-colors ${navbarSolido
-                  ? "text-neutral-900 dark:text-white"
-                  : "text-white"
+                ? "text-neutral-900 dark:text-white"
+                : "text-white"
                 }`}
             >
               FOTOGRAFÍA
@@ -310,8 +300,8 @@ const Navbar = () => {
                 scrollToSection("inicio")
               }
               className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group cursor-pointer ${navbarSolido
-                  ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
-                  : "text-white/90 hover:text-white"
+                ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
+                : "text-white/90 hover:text-white"
                 }`}
             >
               Inicio
@@ -324,8 +314,8 @@ const Navbar = () => {
                 scrollToSection("sobre-mi")
               }
               className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group cursor-pointer ${navbarSolido
-                  ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
-                  : "text-white/90 hover:text-white"
+                ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
+                : "text-white/90 hover:text-white"
                 }`}
             >
               Sobre Mí
@@ -337,8 +327,8 @@ const Navbar = () => {
               to="/galeria"
               onClick={cerrarMenu}
               className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group ${navbarSolido
-                  ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
-                  : "text-white/90 hover:text-white"
+                ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
+                : "text-white/90 hover:text-white"
                 }`}
             >
               Galería
@@ -351,8 +341,8 @@ const Navbar = () => {
                 scrollToSection("servicios")
               }
               className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group cursor-pointer ${navbarSolido
-                  ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
-                  : "text-white/90 hover:text-white"
+                ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
+                : "text-white/90 hover:text-white"
                 }`}
             >
               Servicios
@@ -365,8 +355,8 @@ const Navbar = () => {
                 scrollToSection("contacto")
               }
               className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group cursor-pointer ${navbarSolido
-                  ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
-                  : "text-white/90 hover:text-white"
+                ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
+                : "text-white/90 hover:text-white"
                 }`}
             >
               Contacto
@@ -407,9 +397,10 @@ const Navbar = () => {
                 {dropdownAbierto && (
                   <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-neutral-900 border border-neutral-300/40 dark:border-white/10 shadow-2xl py-2 z-50 text-left">
 
+                    {/* USUARIO CONECTADO */}
                     <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
                       <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">
-                        Conectado como
+                        Michael Bogue
                       </p>
 
                       <p className="text-xs text-neutral-900 dark:text-white truncate font-medium mt-0.5">
@@ -417,44 +408,24 @@ const Navbar = () => {
                       </p>
                     </div>
 
-                    <Link
-                      to="/dashboard"
-                      onClick={() => {
-                        setDropdownAbierto(
-                          false
-                        );
-
-                        cerrarMenu();
-                      }}
-                      className="block px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                    >
-                      📊 Mi Panel
-                    </Link>
-
+                    {/* CONFIGURAR PERFIL */}
                     <button
                       onClick={irAjustesPerfil}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                      className="w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-azul-logo transition-colors cursor-pointer"
                     >
-                      📷 Cambiar Foto / Redes
+                      ⚙️ Configurar Perfil
                     </button>
 
-                    <button
-                      onClick={irAjustesPerfil}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-                    >
-                      🔑 Cambiar Contraseña
-                    </button>
-
+                    {/* CERRAR SESIÓN */}
                     <div className="border-t border-neutral-200 dark:border-neutral-800 mt-1 pt-1">
                       <button
-                        onClick={
-                          manejarCerrarSesion
-                        }
-                        className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                        onClick={manejarCerrarSesion}
+                        className="w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                       >
                         🚪 Cerrar Sesión
                       </button>
                     </div>
+
                   </div>
                 )}
               </div>
@@ -463,8 +434,8 @@ const Navbar = () => {
                 to="/login"
                 onClick={cerrarMenu}
                 className={`text-xs font-bold uppercase tracking-widest px-6 py-2.5 transition-all duration-300 ${navbarSolido
-                    ? "text-neutral-900 border border-neutral-300 hover:bg-azul-logo hover:text-white hover:border-azul-logo dark:text-white dark:border-white/40"
-                    : "text-white border border-white/40 bg-black/20 backdrop-blur-sm hover:bg-azul-logo hover:border-azul-logo"
+                  ? "text-neutral-900 border border-neutral-300 hover:bg-azul-logo hover:text-white hover:border-azul-logo dark:text-white dark:border-white/40"
+                  : "text-white border border-white/40 bg-black/20 backdrop-blur-sm hover:bg-azul-logo hover:border-azul-logo"
                   }`}
               >
                 Ingresar
