@@ -1,6 +1,6 @@
 import express from 'express';
 // 1. Importamos también actualizarInfoPerfil
-import { registrarUsuario, loginUsuario, cambiarPassword, obtenerPerfil, actualizarAvatar, actualizarInfoPerfil } from '../controllers/usuarioController.js';
+import { registrarUsuario, loginUsuario, cambiarPassword, obtenerPerfil, actualizarAvatar, actualizarInfoPerfil, obtenerPerfilPublico } from '../controllers/usuarioController.js';
 
 // Importamos los escudos y validadores
 import { loginLimiter } from '../middlewares/limiter.js';
@@ -15,7 +15,7 @@ const router = express.Router();
 // RUTAS PÚBLICAS
 // ==========================================
 router.post('/login', loginLimiter, loginUsuario);
-
+router.get('/perfil-publico', obtenerPerfilPublico);
 // ==========================================
 // RUTAS PRIVADAS
 // ==========================================

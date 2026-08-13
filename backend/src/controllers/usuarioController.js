@@ -176,3 +176,27 @@ export const actualizarInfoPerfil = async (req, res) => {
     res.status(500).json({ mensaje: 'Error interno del servidor.' });
   }
 };
+
+export const obtenerPerfilPublico = async (req, res) => {
+  try {
+    const usuario = await Usuario.findOne().select('instagram whatsapp');
+
+    if (!usuario) {
+      return res.status(404).json({
+        mensaje: 'Perfil no encontrado.'
+      });
+    }
+
+    res.status(200).json({
+      instagram: usuario.instagram || '',
+      whatsapp: usuario.whatsapp || ''
+    });
+
+  } catch (error) {
+    console.log("💥 ERROR AL OBTENER PERFIL PÚBLICO:", error);
+
+    res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
+  }
+};
