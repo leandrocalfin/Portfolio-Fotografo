@@ -1,7 +1,34 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
 const WhatsApp = () => {
+  const [whatsappLink, setWhatsappLink] = useState('https://wa.me/');
+
+  useEffect(() => {
+    const obtenerWhatsApp = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil`);
+        if (res.data && res.data.whatsapp) {
+          let numero = res.data.whatsapp.trim();
+          // Si el usuario ingresó el link completo o solo el número, lo adaptamos
+          if (numero.startsWith('http')) {
+            setWhatsappLink(numero);
+          } else {
+            // Limpiamos caracteres que no sean números o el signo +
+            const numeroLimpiado = numero.replace(/[^\d+]/g, '');
+            setWhatsappLink(`https://wa.me/${numeroLimpiado}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar WhatsApp en el botón flotante:", error);
+      }
+    };
+    obtenerWhatsApp();
+  }, []);
+
   return (
     <a
-      href="https://wa.me/1234567890" 
+      href={whatsappLink} 
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 bg-azul-logo text-white p-4 rounded-full shadow-[0_0_15px_rgba(19,99,223,0.3)] hover:scale-110 hover:shadow-[0_0_25px_rgba(19,99,223,0.6)] transition-all duration-300 group"

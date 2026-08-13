@@ -9,8 +9,7 @@ const GaleriaCompleta = () => {
   const [filtroActivo, setFiltroActivo] = useState('Todos');
 
   useEffect(() => {
-    window.scrollTo(0, 0); 
-
+    
     const obtenerTodosLosTrabajos = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trabajos`);
