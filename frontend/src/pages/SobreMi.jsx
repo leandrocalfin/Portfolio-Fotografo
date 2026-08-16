@@ -140,7 +140,7 @@ const SobreMi = () => {
               lg:mb-4
             "
           >
-            Detrás del Lente Michael Bogue
+            Detrás del Lente... Michael Bogue
           </h2>
 
           <h3
