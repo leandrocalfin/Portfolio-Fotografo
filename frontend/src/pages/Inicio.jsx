@@ -7,6 +7,10 @@ import Servicios from "../components/Servicios";
 import Contacto from "../components/Contacto";
 
 const Inicio = () => {
+  // ==========================================
+  // SPLASH SCREEN
+  // ==========================================
+
   const [mostrarCarga, setMostrarCarga] = useState(() => {
     return !sessionStorage.getItem("yaVioSplash");
   });
@@ -16,13 +20,19 @@ const Inicio = () => {
   useEffect(() => {
     if (!mostrarCarga) return;
 
+    // A los 2 segundos empieza a desaparecer.
     const temporizadorOpacidad = setTimeout(() => {
       setOpacidad("opacity-0");
     }, 2000);
 
+    // A los 2.7 segundos se elimina completamente.
     const temporizadorBorrado = setTimeout(() => {
       setMostrarCarga(false);
-      sessionStorage.setItem("yaVioSplash", "true");
+
+      sessionStorage.setItem(
+        "yaVioSplash",
+        "true"
+      );
     }, 2700);
 
     return () => {
@@ -33,15 +43,18 @@ const Inicio = () => {
 
   return (
     <>
-      {/* SPLASH SCREEN */}
+      {/* ==========================================
+          SPLASH SCREEN
+          SIEMPRE EN MODO OSCURO
+      ========================================== */}
+
       {mostrarCarga && (
         <div
           className={`
             fixed
             inset-0
             z-[9999]
-            bg-crema-suave
-            dark:bg-neutral-950
+            bg-neutral-950
             flex
             flex-col
             items-center
@@ -52,29 +65,67 @@ const Inicio = () => {
             ${opacidad}
           `}
         >
+          {/* LOGO */}
+
           <div className="flex items-center justify-center mb-8 animate-pulse">
             <img
               src="/logo2.png"
               alt="Logo MB Fotografía"
-              className="h-24 md:h-28 w-auto object-contain"
+              className="
+                h-24
+                md:h-28
+                w-auto
+                object-contain
+              "
             />
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 bg-azul-logo rounded-full animate-ping" />
+          {/* TEXTO INGRESANDO */}
 
-            <span className="text-neutral-500 text-xs tracking-[0.4em] uppercase font-bold">
+          <div className="flex items-center gap-3">
+            <div
+              className="
+                w-1.5
+                h-1.5
+                bg-azul-logo
+                rounded-full
+                animate-ping
+              "
+            />
+
+            <span
+              className="
+                text-neutral-400
+                text-xs
+                tracking-[0.4em]
+                uppercase
+                font-bold
+              "
+            >
               Ingresando
             </span>
           </div>
         </div>
       )}
 
-      <div className="w-full bg-crema-suave dark:bg-neutral-950 transition-colors duration-300">
+      {/* ==========================================
+          CONTENIDO PRINCIPAL
+      ========================================== */}
 
-        {/* ================= HERO ================= */}
+      <div
+        className="
+          w-full
+          bg-crema-suave
+          dark:bg-neutral-950
+          transition-colors
+          duration-300
+        "
+      >
+        {/* ==========================================
+            HERO / INICIO
+        ========================================== */}
+
         <section
-          id="inicio"
           className="
             relative
             w-full
@@ -83,8 +134,10 @@ const Inicio = () => {
             flex
             items-center
           "
+          id="inicio"
         >
-          {/* IMAGEN DE FONDO - SIN CAMBIOS */}
+          {/* IMAGEN DE FONDO */}
+
           <div
             className="
               absolute
@@ -95,9 +148,12 @@ const Inicio = () => {
               bg-no-repeat
             "
             style={{
-              backgroundImage: "url('/fondo.png')",
+              backgroundImage:
+                "url('/fondo.png')",
             }}
           >
+            {/* OSCURECIMIENTO */}
+
             <div
               className="
                 absolute
@@ -113,7 +169,8 @@ const Inicio = () => {
             />
           </div>
 
-          {/* CONTENIDO */}
+          {/* CONTENIDO HERO */}
+
           <div
             className="
               relative
@@ -124,61 +181,37 @@ const Inicio = () => {
               w-full
             "
           >
-            <div
-              className="
-                max-w-2xl
-                mt-28
+            <div className="max-w-2xl mt-28 md:mt-0">
 
-                md:mt-0
-                md:max-w-xl
+              {/* SUBTÍTULO */}
 
-                lg:max-w-2xl
-              "
-            >
-              {/* CAPTURANDO */}
               <h2
                 className="
                   text-azul-logo
                   font-bold
-                  uppercase
-                  drop-shadow-sm
-
-                  text-sm
                   tracking-[0.2em]
+                  text-sm
+                  uppercase
                   mb-4
-
-                  md:text-xs
-                  md:tracking-[0.18em]
-                  md:mb-3
-
-                  lg:text-sm
-                  lg:tracking-[0.2em]
-                  lg:mb-4
+                  drop-shadow-sm
                 "
               >
                 Capturando
               </h2>
 
-              {/* TITULO */}
+              {/* TÍTULO */}
+
               <h1
                 className="
+                  text-5xl
+                  md:text-7xl
                   text-white
                   font-titulos
                   font-bold
-                  uppercase
-                  drop-shadow-md
-
-                  text-5xl
                   leading-tight
                   mb-6
-
-                  md:text-[52px]
-                  md:leading-[1]
-                  md:mb-5
-
-                  lg:text-7xl
-                  lg:leading-tight
-                  lg:mb-6
+                  uppercase
+                  drop-shadow-md
                 "
               >
                 Momentos
@@ -186,69 +219,49 @@ const Inicio = () => {
                 Inolvidables
               </h1>
 
-              {/* DESCRIPCION */}
+              {/* DESCRIPCIÓN */}
+
               <p
                 className="
                   text-neutral-200
-                  font-textos
-                  drop-shadow-sm
-                  max-w-lg
-
+                  md:text-neutral-300
                   text-lg
+                  md:text-xl
+                  font-textos
                   mb-10
-
-                  md:text-base
-                  md:leading-relaxed
-                  md:mb-7
-                  md:max-w-md
-
-                  lg:text-xl
-                  lg:mb-10
-                  lg:max-w-lg
-                  lg:text-neutral-300
+                  max-w-lg
+                  drop-shadow-sm
                 "
               >
-                Fotografía profesional para contar historias reales y emociones
+                Fotografía profesional para contar
+                historias reales y emociones
                 auténticas.
               </p>
 
-              {/* BOTON */}
+              {/* BOTÓN GALERÍA */}
+
               <Link
                 to="/galeria"
                 className="
                   inline-flex
                   items-center
+                  gap-4
+                  text-xs
                   font-bold
                   uppercase
                   tracking-widest
                   text-white
-
                   border
                   border-white/30
                   bg-black/30
                   backdrop-blur-sm
-
+                  px-8
+                  py-4
+                  hover:border-azul-logo
+                  hover:bg-azul-logo
                   transition-all
                   duration-300
                   group
-
-                  hover:border-azul-logo
-                  hover:bg-azul-logo
-
-                  text-xs
-                  gap-4
-                  px-8
-                  py-4
-
-                  md:text-[10px]
-                  md:gap-3
-                  md:px-6
-                  md:py-3
-
-                  lg:text-xs
-                  lg:gap-4
-                  lg:px-8
-                  lg:py-4
                 "
               >
                 Ver Galería
@@ -278,7 +291,9 @@ const Inicio = () => {
           </div>
         </section>
 
-        {/* ================= RESTO DEL SITIO ================= */}
+        {/* ==========================================
+            RESTO DE LAS SECCIONES
+        ========================================== */}
 
         <SobreMi />
 
