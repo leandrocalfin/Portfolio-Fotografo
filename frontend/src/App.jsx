@@ -27,45 +27,49 @@ const ScrollManager = () => {
   useEffect(() => {
     const sectionId = location.state?.scrollTo;
 
-    // Si navegamos normalmente a una página,
-    // simplemente comenzamos arriba.
+    // Navegación normal:
+    // comenzar arriba de la página.
     if (!sectionId) {
       window.scrollTo({
         top: 0,
         left: 0,
-        behavior: "instant",
+        behavior: "auto",
       });
 
       return;
     }
 
     let cancelado = false;
-    let intervalo = null;
-    let timeoutFinal = null;
+    let timeoutCorreccion = null;
 
     const compensacion = 150;
 
     const posicionarSeccion = () => {
       if (cancelado) return false;
 
-      const section = document.getElementById(sectionId);
+      const section =
+        document.getElementById(sectionId);
 
-      // Esperamos solamente hasta que React monte la sección.
+      // Esperar hasta que React haya montado la sección.
       if (!section) {
         return false;
       }
 
+      // Si queremos volver a Inicio.
       if (sectionId === "inicio") {
         window.scrollTo({
           top: 0,
+          left: 0,
           behavior: "auto",
         });
 
         return true;
       }
 
+      // Intentamos tomar el encabezado de la sección.
       const titulo =
-        section.querySelector(".text-center") || section;
+        section.querySelector(".text-center") ||
+        section;
 
       const y =
         titulo.getBoundingClientRect().top +
@@ -73,10 +77,9 @@ const ScrollManager = () => {
         compensacion;
 
       // Movimiento inmediato.
-      // Evita mostrar Inicio durante un segundo
-      // antes de bajar a Servicios o Contacto.
       window.scrollTo({
         top: y,
+        left: 0,
         behavior: "auto",
       });
 
@@ -86,49 +89,50 @@ const ScrollManager = () => {
     const esperarMontaje = () => {
       if (cancelado) return;
 
-      const existe = posicionarSeccion();
+      const existe =
+        posicionarSeccion();
 
+      // Si la sección todavía no existe,
+      // esperamos al próximo frame.
       if (!existe) {
-        requestAnimationFrame(esperarMontaje);
+        requestAnimationFrame(
+          esperarMontaje
+        );
+
         return;
       }
 
       /*
-        Una vez que llegamos a la sección,
-        seguimos corrigiendo la posición durante
-        un pequeño período mientras React,
-        imágenes, Swiper y datos de la API
-        terminan de acomodar la página.
+        Hacemos UNA sola corrección adicional
+        después de un pequeño tiempo.
+
+        Esto permite que imágenes, Swiper o datos
+        terminen de acomodar un poco el layout,
+        pero evita estar forzando el scroll cada
+        100 ms durante varios segundos.
       */
-
-      intervalo = setInterval(() => {
-        posicionarSeccion();
-      }, 100);
-
-      timeoutFinal = setTimeout(() => {
-        if (intervalo) {
-          clearInterval(intervalo);
+      timeoutCorreccion = setTimeout(() => {
+        if (!cancelado) {
+          posicionarSeccion();
         }
-
-        // Posición definitiva.
-        posicionarSeccion();
-      }, 2000);
+      }, 250);
     };
 
-    requestAnimationFrame(esperarMontaje);
+    requestAnimationFrame(
+      esperarMontaje
+    );
 
     return () => {
       cancelado = true;
 
-      if (intervalo) {
-        clearInterval(intervalo);
-      }
-
-      if (timeoutFinal) {
-        clearTimeout(timeoutFinal);
+      if (timeoutCorreccion) {
+        clearTimeout(timeoutCorreccion);
       }
     };
-  }, [location.pathname, location.state]);
+  }, [
+    location.pathname,
+    location.state,
+  ]);
 
   return null;
 };
@@ -141,22 +145,37 @@ axios.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
-    const status = error.response?.status;
-    const token = localStorage.getItem("token");
 
-    // Solo mandar al login si HABÍA una sesión iniciada
-    // y ese token dejó de ser válido.
+  (error) => {
+    const status =
+      error.response?.status;
+
+    const token =
+      localStorage.getItem("token");
+
+    // Solo mandar al login si existía una
+    // sesión y el token dejó de ser válido.
     if (
       token &&
-      (status === 401 || status === 403)
+      (status === 401 ||
+        status === 403)
     ) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("ultimaActividad");
+      localStorage.removeItem(
+        "token"
+      );
 
-      // Evitamos recargar /login una y otra vez
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      localStorage.removeItem(
+        "ultimaActividad"
+      );
+
+      // Evitamos recargar /login
+      // si ya estamos ahí.
+      if (
+        window.location.pathname !==
+        "/login"
+      ) {
+        window.location.href =
+          "/login";
       }
     }
 
@@ -173,21 +192,41 @@ function App() {
     <Router>
       <ScrollManager />
 
-      <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-textos flex flex-col transition-colors duration-300">
+      <div
+        className="
+          min-h-screen
+          bg-white
+          dark:bg-neutral-950
+          text-neutral-900
+          dark:text-neutral-100
+          font-textos
+          flex
+          flex-col
+          transition-colors
+          duration-300
+        "
+      >
         <Navbar />
 
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<Inicio />} />
+            <Route
+              path="/"
+              element={<Inicio />}
+            />
 
             <Route
               path="/galeria"
-              element={<GaleriaCompleta />}
+              element={
+                <GaleriaCompleta />
+              }
             />
 
             <Route
               path="/trabajo/:id"
-              element={<DetalleTrabajo />}
+              element={
+                <DetalleTrabajo />
+              }
             />
 
             <Route
