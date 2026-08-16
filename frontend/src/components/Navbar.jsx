@@ -97,6 +97,7 @@ const Navbar = () => {
 
   const cerrarMenu = () => {
     setMenuAbierto(false);
+    setDropdownAbierto(false);
   };
 
   // ==========================================
@@ -215,9 +216,7 @@ const Navbar = () => {
           {/* ================= LOGO ================= */}
 
           <button
-            onClick={() =>
-              scrollToSection("inicio")
-            }
+            onClick={() => scrollToSection("inicio")}
             className="
               flex
               items-center
@@ -279,8 +278,14 @@ const Navbar = () => {
 
             <button
               className="text-neutral-900 dark:text-white focus:outline-none"
-              onClick={() =>
-                setMenuAbierto(!menuAbierto)
+              onClick={() => {
+                setMenuAbierto(!menuAbierto);
+                setDropdownAbierto(false);
+              }}
+              aria-label={
+                menuAbierto
+                  ? "Cerrar menú"
+                  : "Abrir menú"
               }
             >
               <svg
@@ -318,7 +323,7 @@ const Navbar = () => {
               left-0
               w-full
               md:w-auto
-              h-screen
+              h-[100dvh]
               md:h-auto
 
               flex
@@ -329,11 +334,12 @@ const Navbar = () => {
               justify-center
               md:justify-end
 
-              space-y-8
-              md:space-y-0
-
+              gap-7
               md:gap-4
               lg:gap-8
+
+              px-5
+              md:px-0
 
               transition-all
               duration-500
@@ -346,11 +352,11 @@ const Navbar = () => {
               }
             `}
           >
+
             {/* INICIO */}
+
             <button
-              onClick={() =>
-                scrollToSection("inicio")
-              }
+              onClick={() => scrollToSection("inicio")}
               className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
@@ -363,10 +369,9 @@ const Navbar = () => {
             </button>
 
             {/* SOBRE MI */}
+
             <button
-              onClick={() =>
-                scrollToSection("sobre-mi")
-              }
+              onClick={() => scrollToSection("sobre-mi")}
               className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
@@ -379,6 +384,7 @@ const Navbar = () => {
             </button>
 
             {/* GALERÍA */}
+
             <Link
               to="/galeria"
               onClick={cerrarMenu}
@@ -394,10 +400,9 @@ const Navbar = () => {
             </Link>
 
             {/* SERVICIOS */}
+
             <button
-              onClick={() =>
-                scrollToSection("servicios")
-              }
+              onClick={() => scrollToSection("servicios")}
               className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
@@ -410,10 +415,9 @@ const Navbar = () => {
             </button>
 
             {/* CONTACTO */}
+
             <button
-              onClick={() =>
-                scrollToSection("contacto")
-              }
+              onClick={() => scrollToSection("contacto")}
               className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
@@ -429,7 +433,7 @@ const Navbar = () => {
 
             {token ? (
               <div
-                className="relative"
+                className="relative flex justify-center"
                 ref={dropdownRef}
               >
                 <button
@@ -472,17 +476,92 @@ const Navbar = () => {
                   )}
                 </button>
 
+                {/* ================= DROPDOWN ADMIN ================= */}
+
                 {dropdownAbierto && (
-                  <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-neutral-900 border border-neutral-300/40 dark:border-white/10 shadow-2xl py-2 z-50 text-left">
-                    <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-                      <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">
+                  <div
+                    className="
+                      absolute
+
+                      top-full
+                      left-1/2
+                      -translate-x-1/2
+
+                      md:left-auto
+                      md:right-0
+                      md:translate-x-0
+
+                      mt-3
+
+                      w-[210px]
+                      sm:w-[220px]
+                      md:w-60
+                      lg:w-64
+
+                      max-w-[calc(100vw-32px)]
+
+                      bg-white
+                      dark:bg-neutral-900
+
+                      border
+                      border-neutral-300/40
+                      dark:border-white/10
+
+                      shadow-2xl
+
+                      py-1.5
+                      md:py-2
+
+                      z-[100]
+
+                      text-left
+                    "
+                  >
+
+                    {/* USUARIO */}
+
+                    <div
+                      className="
+                        px-3
+                        md:px-4
+
+                        py-2.5
+                        md:py-3
+
+                        border-b
+                        border-neutral-200
+                        dark:border-neutral-800
+                      "
+                    >
+                      <p
+                        className="
+                          text-[8px]
+                          md:text-[10px]
+                          text-neutral-500
+                          uppercase
+                          tracking-widest
+                          font-bold
+                        "
+                      >
                         Conectado como
                       </p>
 
-                      <p className="text-sm text-neutral-900 dark:text-white font-bold mt-1">
+                      <p
+                        className="
+                          text-xs
+                          md:text-sm
+                          text-neutral-900
+                          dark:text-white
+                          font-bold
+                          mt-1
+                          truncate
+                        "
+                      >
                         Michael Bogue
                       </p>
                     </div>
+
+                    {/* GALERÍA */}
 
                     <button
                       onClick={() =>
@@ -490,10 +569,32 @@ const Navbar = () => {
                           "admin-galeria"
                         )
                       }
-                      className="w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-azul-logo transition-colors cursor-pointer"
+                      className="
+                        w-full
+                        text-left
+                        px-3
+                        md:px-4
+                        py-2.5
+                        md:py-3
+                        text-[9px]
+                        md:text-xs
+                        font-bold
+                        uppercase
+                        tracking-wide
+                        md:tracking-wider
+                        text-neutral-700
+                        dark:text-neutral-300
+                        hover:bg-neutral-100
+                        dark:hover:bg-neutral-800
+                        hover:text-azul-logo
+                        transition-colors
+                        cursor-pointer
+                      "
                     >
                       🖼️ Administrar Galería
                     </button>
+
+                    {/* SERVICIOS */}
 
                     <button
                       onClick={() =>
@@ -501,10 +602,32 @@ const Navbar = () => {
                           "admin-servicios"
                         )
                       }
-                      className="w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-azul-logo transition-colors cursor-pointer"
+                      className="
+                        w-full
+                        text-left
+                        px-3
+                        md:px-4
+                        py-2.5
+                        md:py-3
+                        text-[9px]
+                        md:text-xs
+                        font-bold
+                        uppercase
+                        tracking-wide
+                        md:tracking-wider
+                        text-neutral-700
+                        dark:text-neutral-300
+                        hover:bg-neutral-100
+                        dark:hover:bg-neutral-800
+                        hover:text-azul-logo
+                        transition-colors
+                        cursor-pointer
+                      "
                     >
                       📷 Administrar Servicios
                     </button>
+
+                    {/* PERFIL */}
 
                     <button
                       onClick={() =>
@@ -512,17 +635,65 @@ const Navbar = () => {
                           "ajustes-perfil"
                         )
                       }
-                      className="w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-azul-logo transition-colors cursor-pointer"
+                      className="
+                        w-full
+                        text-left
+                        px-3
+                        md:px-4
+                        py-2.5
+                        md:py-3
+                        text-[9px]
+                        md:text-xs
+                        font-bold
+                        uppercase
+                        tracking-wide
+                        md:tracking-wider
+                        text-neutral-700
+                        dark:text-neutral-300
+                        hover:bg-neutral-100
+                        dark:hover:bg-neutral-800
+                        hover:text-azul-logo
+                        transition-colors
+                        cursor-pointer
+                      "
                     >
                       ⚙️ Configurar Perfil
                     </button>
 
-                    <div className="border-t border-neutral-200 dark:border-neutral-800 mt-1 pt-1">
+                    {/* CERRAR SESIÓN */}
+
+                    <div
+                      className="
+                        border-t
+                        border-neutral-200
+                        dark:border-neutral-800
+                        mt-1
+                        pt-1
+                      "
+                    >
                       <button
                         onClick={
                           manejarCerrarSesion
                         }
-                        className="w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                        className="
+                          w-full
+                          text-left
+                          px-3
+                          md:px-4
+                          py-2.5
+                          md:py-3
+                          text-[9px]
+                          md:text-xs
+                          font-bold
+                          uppercase
+                          tracking-wide
+                          md:tracking-wider
+                          text-red-600
+                          hover:bg-red-50
+                          dark:hover:bg-red-950/30
+                          transition-colors
+                          cursor-pointer
+                        "
                       >
                         🚪 Cerrar Sesión
                       </button>
@@ -548,6 +719,7 @@ const Navbar = () => {
                   whitespace-nowrap
                   transition-all
                   duration-300
+
                   ${
                     navbarSolido
                       ? "text-neutral-900 border border-neutral-300 hover:bg-azul-logo hover:text-white hover:border-azul-logo dark:text-white dark:border-white/40"
@@ -558,6 +730,8 @@ const Navbar = () => {
                 Ingresar
               </Link>
             )}
+
+            {/* THEME DESKTOP */}
 
             <div className="hidden md:block shrink-0">
               <ThemeToggle />
