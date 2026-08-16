@@ -118,7 +118,53 @@ const Dashboard = () => {
   // Estados generales de control
   const [cargando, setCargando] = useState(true);
   const [subiendo, setSubiendo] = useState(false);
+
+  // Mensaje inline: se usa solo para validaciones que no pertenecen a un botón
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
+
+  // Feedback visual dentro de cada botón
+  const [estadoBotones, setEstadoBotones] = useState({
+    trabajo: { tipo: 'idle', texto: '' },
+    servicio: { tipo: 'idle', texto: '' },
+    avatar: { tipo: 'idle', texto: '' },
+    whatsapp: { tipo: 'idle', texto: '' },
+    instagram: { tipo: 'idle', texto: '' },
+    password: { tipo: 'idle', texto: '' },
+    eliminarTrabajo: { tipo: 'idle', texto: '' },
+    eliminarServicio: { tipo: 'idle', texto: '' }
+  });
+
+  const actualizarEstadoBoton = (clave, tipo, texto = '', duracion = 2200) => {
+    setEstadoBotones((prev) => ({
+      ...prev,
+      [clave]: { tipo, texto }
+    }));
+
+    if ((tipo === 'exito' || tipo === 'error') && duracion) {
+      setTimeout(() => {
+        setEstadoBotones((prev) => ({
+          ...prev,
+          [clave]: { tipo: 'idle', texto: '' }
+        }));
+      }, duracion);
+    }
+  };
+
+  const claseEstadoBoton = (estado, claseNormal) => {
+    if (estado.tipo === 'exito') {
+      return 'bg-green-600 border-green-600 text-white hover:bg-green-600';
+    }
+
+    if (estado.tipo === 'error') {
+      return 'bg-red-600 border-red-600 text-white hover:bg-red-600';
+    }
+
+    if (estado.tipo === 'procesando') {
+      return 'bg-neutral-500 border-neutral-500 text-white cursor-wait opacity-90';
+    }
+
+    return claseNormal;
+  };
 
   const token = localStorage.getItem('token');
 
@@ -133,15 +179,6 @@ const Dashboard = () => {
     obtenerPerfil();
   }, [token, navigate]);
 
-  // Cartel automático
-  useEffect(() => {
-    if (mensaje.texto) {
-      const temporizador = setTimeout(() => {
-        setMensaje({ texto: '', tipo: '' });
-      }, 4000);
-      return () => clearTimeout(temporizador);
-    }
-  }, [mensaje]);
 
   // Obtener trabajos, servicios y perfil
   const obtenerTrabajos = async () => {
@@ -185,29 +222,45 @@ const Dashboard = () => {
     e.preventDefault();
     if (!nuevaImagen) return;
 
+    actualizarEstadoBoton('avatar', 'procesando', 'Guardando...');
+
     const formData = new FormData();
     formData.append('imagen', nuevaImagen);
 
     try {
-      const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil/avatar`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/usuarios/perfil/avatar`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
         }
-      });
-      setPerfil(prev => ({ ...prev, avatar: res.data.avatar }));
-      setNuevaImagen(null);
-      setPreviewImagen('');
-      setMensaje({ texto: '¡Foto de perfil actualizada con éxito!', tipo: 'exito' });
-      setTimeout(() => window.location.reload(), 1500); // Recarga para actualizar navbar
+      );
+
+      setPerfil((prev) => ({ ...prev, avatar: res.data.avatar }));
+      actualizarEstadoBoton('avatar', 'exito', '✓ Foto guardada', 0);
+
+      setTimeout(() => {
+        setNuevaImagen(null);
+        setPreviewImagen('');
+        window.location.reload();
+      }, 1300);
     } catch (error) {
       console.error("Error al cambiar avatar:", error);
-      setMensaje({ texto: error.response?.data?.mensaje || 'Error al actualizar la foto', tipo: 'error' });
+      actualizarEstadoBoton(
+        'avatar',
+        'error',
+        error.response?.data?.mensaje || 'Error al guardar',
+        2600
+      );
     }
   };
 
   const handleGuardarWhatsapp = async (e) => {
     e.preventDefault();
+    actualizarEstadoBoton('whatsapp', 'procesando', 'Guardando...');
 
     try {
       const res = await axios.put(
@@ -217,18 +270,21 @@ const Dashboard = () => {
       );
 
       setPerfil((prev) => ({ ...prev, whatsapp: res.data.whatsapp }));
-      setMensaje({ texto: '¡WhatsApp actualizado con éxito!', tipo: 'exito' });
+      actualizarEstadoBoton('whatsapp', 'exito', '✓ Guardado con éxito');
     } catch (error) {
       console.error("Error al actualizar WhatsApp:", error);
-      setMensaje({
-        texto: error.response?.data?.mensaje || 'Error al actualizar WhatsApp',
-        tipo: 'error'
-      });
+      actualizarEstadoBoton(
+        'whatsapp',
+        'error',
+        error.response?.data?.mensaje || 'Error al guardar',
+        2600
+      );
     }
   };
 
   const handleGuardarInstagram = async (e) => {
     e.preventDefault();
+    actualizarEstadoBoton('instagram', 'procesando', 'Guardando...');
 
     try {
       const res = await axios.put(
@@ -238,13 +294,15 @@ const Dashboard = () => {
       );
 
       setPerfil((prev) => ({ ...prev, instagram: res.data.instagram }));
-      setMensaje({ texto: '¡Instagram actualizado con éxito!', tipo: 'exito' });
+      actualizarEstadoBoton('instagram', 'exito', '✓ Guardado con éxito');
     } catch (error) {
       console.error("Error al actualizar Instagram:", error);
-      setMensaje({
-        texto: error.response?.data?.mensaje || 'Error al actualizar Instagram',
-        tipo: 'error'
-      });
+      actualizarEstadoBoton(
+        'instagram',
+        'error',
+        error.response?.data?.mensaje || 'Error al guardar',
+        2600
+      );
     }
   };
 
@@ -252,7 +310,7 @@ const Dashboard = () => {
     e.preventDefault();
 
     if (passwordNueva !== confirmarPassword) {
-      setMensaje({ texto: 'Las contraseñas nuevas no coinciden.', tipo: 'error' });
+      actualizarEstadoBoton('password', 'error', 'Las contraseñas no coinciden', 2800);
       return;
     }
 
@@ -264,12 +322,11 @@ const Dashboard = () => {
       /[^A-Za-z0-9]/.test(passwordNueva);
 
     if (!passwordSegura) {
-      setMensaje({
-        texto: 'La contraseña debe tener al menos 10 caracteres, mayúscula, minúscula, número y símbolo.',
-        tipo: 'error'
-      });
+      actualizarEstadoBoton('password', 'error', 'La contraseña no cumple los requisitos', 3200);
       return;
     }
+
+    actualizarEstadoBoton('password', 'procesando', 'Actualizando...');
 
     try {
       await axios.put(
@@ -278,16 +335,18 @@ const Dashboard = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setMensaje({ texto: '¡Contraseña actualizada con éxito!', tipo: 'exito' });
       setPasswordActual('');
       setPasswordNueva('');
       setConfirmarPassword('');
+      actualizarEstadoBoton('password', 'exito', '✓ Contraseña actualizada');
     } catch (error) {
       console.error("Error al cambiar contraseña:", error);
-      setMensaje({
-        texto: error.response?.data?.mensaje || 'Error al cambiar la contraseña',
-        tipo: 'error'
-      });
+      actualizarEstadoBoton(
+        'password',
+        'error',
+        error.response?.data?.mensaje || 'Error al actualizar',
+        2800
+      );
     }
   };
 
@@ -355,6 +414,13 @@ const Dashboard = () => {
     e.preventDefault();
     setSubiendo(true);
 
+    const estabaEditando = Boolean(editandoId);
+    actualizarEstadoBoton(
+      'trabajo',
+      'procesando',
+      estabaEditando ? 'Actualizando...' : 'Publicando...'
+    );
+
     const formData = new FormData();
     formData.append('titulo', titulo);
     formData.append('descripcion', descripcion);
@@ -373,24 +439,43 @@ const Dashboard = () => {
 
     try {
       if (editandoId) {
-        await axios.put(`${import.meta.env.VITE_API_URL}/api/trabajos/${editandoId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
-        });
-        setMensaje({ texto: '¡Álbum actualizado correctamente!', tipo: 'exito' });
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/trabajos/${editandoId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/trabajos`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
-        });
-        setMensaje({ texto: '¡Nuevo trabajo publicado con éxito!', tipo: 'exito' });
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/trabajos`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
       }
+
       cancelarEdicion();
       obtenerTrabajos();
+      actualizarEstadoBoton(
+        'trabajo',
+        'exito',
+        estabaEditando ? '✓ Álbum actualizado' : '✓ Álbum publicado'
+      );
     } catch (error) {
       console.error("Error al guardar trabajo:", error);
-      const textoError = error.response?.data?.errores?.[0]
-        || error.response?.data?.mensaje
-        || 'Error al procesar la solicitud.';
-      setMensaje({ texto: textoError, tipo: 'error' });
+      const textoError =
+        error.response?.data?.errores?.[0] ||
+        error.response?.data?.mensaje ||
+        'Error al procesar';
+      actualizarEstadoBoton('trabajo', 'error', textoError, 3000);
     } finally {
       setSubiendo(false);
     }
@@ -398,18 +483,25 @@ const Dashboard = () => {
 
   const confirmarEliminacionTrabajo = async () => {
     if (!idParaEliminar) return;
+    actualizarEstadoBoton('eliminarTrabajo', 'procesando', 'Eliminando...');
+
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/trabajos/${idParaEliminar}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setMensaje({ texto: 'Álbum eliminado correctamente.', tipo: 'exito' });
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/trabajos/${idParaEliminar}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
       if (editandoId === idParaEliminar) cancelarEdicion();
       obtenerTrabajos();
+      actualizarEstadoBoton('eliminarTrabajo', 'exito', '✓ Álbum eliminado', 0);
+
+      setTimeout(() => {
+        setIdParaEliminar(null);
+        actualizarEstadoBoton('eliminarTrabajo', 'idle', '', 0);
+      }, 900);
     } catch (error) {
       console.error("Error al eliminar trabajo:", error);
-      setMensaje({ texto: 'No se pudo eliminar el trabajo.', tipo: 'error' });
-    } finally {
-      setIdParaEliminar(null);
+      actualizarEstadoBoton('eliminarTrabajo', 'error', 'No se pudo eliminar', 2600);
     }
   };
 
@@ -441,34 +533,56 @@ const Dashboard = () => {
     e.preventDefault();
     setSubiendoServicio(true);
 
+    const estabaEditando = Boolean(editandoServicioId);
+    actualizarEstadoBoton(
+      'servicio',
+      'procesando',
+      estabaEditando ? 'Actualizando...' : 'Creando...'
+    );
+
     const formData = new FormData();
     formData.append('titulo', tituloServicio);
     formData.append('descripcion', descripcionServicio);
     formData.append('link', linkServicio);
-    if (imagenServicio) {
-      formData.append('imagen', imagenServicio);
-    }
-    if (editandoServicioId) {
-      formData.append('imagenExistente', imagenServicioActual);
-    }
+
+    if (imagenServicio) formData.append('imagen', imagenServicio);
+    if (editandoServicioId) formData.append('imagenExistente', imagenServicioActual);
 
     try {
       if (editandoServicioId) {
-        await axios.put(`${import.meta.env.VITE_API_URL}/api/servicios/${editandoServicioId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
-        });
-        setMensaje({ texto: '¡Servicio actualizado correctamente!', tipo: 'exito' });
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/servicios/${editandoServicioId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/servicios`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
-        });
-        setMensaje({ texto: '¡Servicio creado con éxito!', tipo: 'exito' });
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/servicios`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
       }
+
       cancelarEdicionServicio();
       obtenerServicios();
+      actualizarEstadoBoton(
+        'servicio',
+        'exito',
+        estabaEditando ? '✓ Servicio actualizado' : '✓ Servicio creado'
+      );
     } catch (error) {
       console.error("Error al guardar servicio:", error);
-      setMensaje({ texto: 'Error al procesar el servicio.', tipo: 'error' });
+      actualizarEstadoBoton('servicio', 'error', 'Error al guardar servicio', 2800);
     } finally {
       setSubiendoServicio(false);
     }
@@ -476,18 +590,25 @@ const Dashboard = () => {
 
   const confirmarEliminacionServicio = async () => {
     if (!idServicioParaEliminar) return;
+    actualizarEstadoBoton('eliminarServicio', 'procesando', 'Eliminando...');
+
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/servicios/${idServicioParaEliminar}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setMensaje({ texto: 'Servicio eliminado correctamente.', tipo: 'exito' });
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/servicios/${idServicioParaEliminar}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
       if (editandoServicioId === idServicioParaEliminar) cancelarEdicionServicio();
       obtenerServicios();
+      actualizarEstadoBoton('eliminarServicio', 'exito', '✓ Servicio eliminado', 0);
+
+      setTimeout(() => {
+        setIdServicioParaEliminar(null);
+        actualizarEstadoBoton('eliminarServicio', 'idle', '', 0);
+      }, 900);
     } catch (error) {
       console.error("Error al eliminar servicio:", error);
-      setMensaje({ texto: 'No se pudo eliminar el servicio.', tipo: 'error' });
-    } finally {
-      setIdServicioParaEliminar(null);
+      actualizarEstadoBoton('eliminarServicio', 'error', 'No se pudo eliminar', 2600);
     }
   };
 
@@ -500,17 +621,26 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 pt-20 pb-24 px-6 relative z-10 transition-colors duration-300">
+    <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 pt-20 pb-16 sm:pb-20 lg:pb-24 px-3 sm:px-5 lg:px-6 relative z-10 transition-colors duration-300">
 
       {/* ================= MODAL ELIMINAR ÁLBUM ================= */}
       {idParaEliminar && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-white dark:bg-neutral-900 p-8 md:p-12 max-w-md w-full shadow-2xl border-t-4 border-t-red-600">
+          <div className="bg-white dark:bg-neutral-900 p-5 sm:p-7 lg:p-10 max-w-md w-full shadow-2xl border-t-4 border-t-red-600">
             <h3 className="text-xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-widest mb-4">⚠ ¿Eliminar Álbum?</h3>
             <p className="text-neutral-700 dark:text-neutral-300 text-sm mb-8">Esta acción borrará el álbum y todas sus fotos. No se puede deshacer.</p>
             <div className="flex justify-end gap-4">
               <button onClick={() => setIdParaEliminar(null)} className="text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase cursor-pointer hover:opacity-75">Cancelar</button>
-              <button onClick={confirmarEliminacionTrabajo} className="bg-red-600 text-white px-6 py-2 text-xs font-bold uppercase cursor-pointer hover:bg-red-700">Sí, Eliminar</button>
+              <button
+                onClick={confirmarEliminacionTrabajo}
+                disabled={estadoBotones.eliminarTrabajo.tipo === 'procesando' || estadoBotones.eliminarTrabajo.tipo === 'exito'}
+                className={`px-6 py-2 text-xs font-bold uppercase transition-colors shadow-sm ${claseEstadoBoton(
+                  estadoBotones.eliminarTrabajo,
+                  'bg-red-600 border-red-600 text-white hover:bg-red-700'
+                )}`}
+              >
+                {estadoBotones.eliminarTrabajo.tipo === 'idle' ? 'Sí, Eliminar' : estadoBotones.eliminarTrabajo.texto}
+              </button>
             </div>
           </div>
         </div>
@@ -519,30 +649,33 @@ const Dashboard = () => {
       {/* ================= MODAL ELIMINAR SERVICIO ================= */}
       {idServicioParaEliminar && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-white dark:bg-neutral-900 p-8 md:p-12 max-w-md w-full shadow-2xl border-t-4 border-t-red-600">
+          <div className="bg-white dark:bg-neutral-900 p-5 sm:p-7 lg:p-10 max-w-md w-full shadow-2xl border-t-4 border-t-red-600">
             <h3 className="text-xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-widest mb-4">¿Eliminar Servicio?</h3>
             <p className="text-neutral-700 dark:text-neutral-300 text-sm mb-8">Esta acción borrará el servicio de la web.</p>
             <div className="flex justify-end gap-4">
               <button onClick={() => setIdServicioParaEliminar(null)} className="text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase cursor-pointer hover:opacity-75">Cancelar</button>
-              <button onClick={confirmarEliminacionServicio} className="bg-red-600 text-white px-6 py-2 text-xs font-bold uppercase cursor-pointer hover:bg-red-700">Eliminar</button>
+              <button
+                onClick={confirmarEliminacionServicio}
+                disabled={estadoBotones.eliminarServicio.tipo === 'procesando' || estadoBotones.eliminarServicio.tipo === 'exito'}
+                className={`px-6 py-2 text-xs font-bold uppercase transition-colors shadow-sm ${claseEstadoBoton(
+                  estadoBotones.eliminarServicio,
+                  'bg-red-600 border-red-600 text-white hover:bg-red-700'
+                )}`}
+              >
+                {estadoBotones.eliminarServicio.tipo === 'idle' ? 'Eliminar' : estadoBotones.eliminarServicio.texto}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ================= CARTEL FLOTANTE ================= */}
-      {mensaje.texto && (
-        <div className={`fixed top-28 right-10 z-[100] px-8 py-5 shadow-2xl border flex items-center gap-4 animate-bounce ${mensaje.tipo === 'exito' ? 'bg-[#78A4CB]/30 dark:bg-neutral-900 border-azul-logo/40 text-neutral-900 dark:text-white' : 'bg-red-950 border-red-500/50 text-red-200'}`}>
-          <span className="text-xs font-bold uppercase tracking-widest">{mensaje.texto}</span>
-        </div>
-      )}
 
       <div className="max-w-7xl mx-auto space-y-2">
 
         {/* DISEÑO MEJORADO PARA EL TÍTULO DEL PANEL */}
-        <div className="text-center pb-8 pt-10">
-          <div className="inline-block border-b-2 border-t-2 border-azul-logo/30 py-3 px-8 mb-2">
-            <h1 className="text-2xl md:text-3xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-[0.25em]">
+        <div className="text-center pb-6 sm:pb-8 pt-6 sm:pt-10">
+          <div className="inline-block border-b-2 border-t-2 border-azul-logo/30 py-2.5 px-4 sm:px-6 lg:px-8 mb-2">
+            <h1 className="text-lg sm:text-2xl lg:text-3xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-[0.16em] sm:tracking-[0.22em] lg:tracking-[0.25em]">
               Panel <span className="text-azul-logo font-normal">Administrador</span>
             </h1>
           </div>
@@ -551,21 +684,21 @@ const Dashboard = () => {
         {/* ================= SECCIÓN GESTIÓN DE ÁLBUMES / TRABAJOS ================= */}
         <div id="admin-galeria">
           <div className="text-center mb-8">
-            <h2 className="text-xl md:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
+            <h2 className="text-lg sm:text-xl lg:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
               Galería
             </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 text-sm italic mt-1">Agregá o modificá los álbumes y sesiones fotográficas.</p>
+            <p className="text-neutral-600 dark:text-neutral-400 text-xs sm:text-sm italic mt-1">Agregá o modificá los álbumes y sesiones fotográficas.</p>
           </div>
 
-          <form onSubmit={manejarSubmitTrabajo} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-8 md:p-12 mb-16 shadow-xl border-t-4 border-t-azul-logo">
-            <div className="border-b border-neutral-300/40 dark:border-neutral-800 pb-8 mb-10">
-              <h2 className="text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide mb-2">
+          <form onSubmit={manejarSubmitTrabajo} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-4 sm:p-6 lg:p-10 xl:p-12 mb-10 sm:mb-14 lg:mb-16 shadow-xl border-t-4 border-t-azul-logo">
+            <div className="border-b border-neutral-300/40 dark:border-neutral-800 pb-4 sm:pb-6 lg:pb-8 mb-6 lg:mb-10">
+              <h2 className="text-xl sm:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide mb-2">
                 {editandoId ? 'Editar Álbum' : 'Subir Nuevo Álbum'}
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-              <div className="lg:col-span-5 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 xl:gap-12">
+              <div className="md:col-span-5 space-y-4 sm:space-y-5 lg:space-y-6">
                 <div>
                   <label className="block text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase tracking-widest mb-2">Título de la Sesión</label>
                   <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} required placeholder="Ej: Boda Civil" className="w-full bg-white/70 dark:bg-neutral-950 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-4 py-3 text-sm focus:outline-none focus:border-azul-logo" />
@@ -596,7 +729,7 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="lg:col-span-7 flex flex-col justify-between">
+              <div className="md:col-span-7 flex flex-col justify-between">
                 <div>
                   <label className="block text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase tracking-widest mb-2">Imágenes</label>
 
@@ -614,7 +747,7 @@ const Dashboard = () => {
                     </div>
                   )}
 
-                  <div className="border-2 border-dashed border-azul-logo/40 bg-white/70 dark:bg-neutral-950 flex flex-col items-center justify-center text-center relative h-[220px]">
+                  <div className="border-2 border-dashed border-azul-logo/40 bg-white/70 dark:bg-neutral-950 flex flex-col items-center justify-center text-center relative h-[160px] sm:h-[180px] lg:h-[220px]">
                     <input id="file-input" type="file" multiple accept="image/*" onChange={manejarCambioArchivos} required={!editandoId} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                     <div className="pointer-events-none px-6">
                       <p className="text-neutral-900 dark:text-white font-bold tracking-widest text-xs mb-2">HAZ CLIC PARA SELECCIONAR FOTOS</p>
@@ -625,12 +758,28 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="mt-12 pt-8 border-t border-neutral-300/40 dark:border-neutral-800 flex justify-end gap-4">
+            {mensaje.texto && (
+              <div className={`mt-5 px-4 py-3 text-xs font-semibold ${mensaje.tipo === 'error'
+                ? 'bg-red-500/10 text-red-600 dark:text-red-300 border border-red-500/20'
+                : 'bg-green-500/10 text-green-700 dark:text-green-300 border border-green-500/20'
+              }`}>
+                {mensaje.texto}
+              </div>
+            )}
+
+            <div className="mt-8 lg:mt-12 pt-5 lg:pt-8 border-t border-neutral-300/40 dark:border-neutral-800 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
               {editandoId && (
                 <button type="button" onClick={cancelarEdicion} className="text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase cursor-pointer">Cancelar</button>
               )}
-              <button type="submit" disabled={subiendo} className="bg-azul-logo text-white px-12 py-4 uppercase tracking-widest text-xs font-bold hover:opacity-90 cursor-pointer shadow-md">
-                {subiendo ? 'Procesando...' : (editandoId ? 'Actualizar Álbum' : 'Publicar Álbum')}
+              <button
+                type="submit"
+                disabled={subiendo || estadoBotones.trabajo.tipo === 'procesando'}
+                className={`w-full sm:w-auto px-6 sm:px-8 lg:px-12 py-3 lg:py-4 uppercase tracking-widest text-[10px] sm:text-xs font-bold transition-colors shadow-md ${claseEstadoBoton(
+                  estadoBotones.trabajo,
+                  'bg-azul-logo border-azul-logo text-white hover:opacity-90 cursor-pointer'
+                )}`}
+              >
+                {estadoBotones.trabajo.tipo === 'idle' ? (editandoId ? 'Actualizar Álbum' : 'Publicar Álbum') : estadoBotones.trabajo.texto}
               </button>
             </div>
           </form>
@@ -644,11 +793,11 @@ const Dashboard = () => {
             {trabajos.length === 0 ? (
               <p className="text-neutral-500 text-center py-12 text-sm">No hay álbumes publicados todavía.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
                 {trabajos.map((trabajo) => (
                   <div key={trabajo._id} onClick={() => window.open(`/trabajo/${trabajo._id}`, '_blank')} className="flex flex-col bg-[#78A4CB]/15 dark:bg-neutral-900 cursor-pointer group shadow-lg hover:-translate-y-1 transition-transform duration-300 border-t-2 border-t-azul-logo">
-                    <div className="h-48 bg-cover bg-center w-full" style={{ backgroundImage: `url(${trabajo.fotos?.[0] || ''})` }}></div>
-                    <div className="p-6 flex-grow flex flex-col justify-between">
+                    <div className="h-40 sm:h-44 lg:h-48 bg-cover bg-center w-full" style={{ backgroundImage: `url(${trabajo.fotos?.[0] || ''})` }}></div>
+                    <div className="p-4 sm:p-5 lg:p-6 flex-grow flex flex-col justify-between">
                       <div>
                         <h3 className="text-neutral-900 dark:text-white font-bold text-sm tracking-widest uppercase mb-1">{trabajo.titulo}</h3>
                         <span className="text-[10px] text-azul-logo uppercase tracking-widest font-bold">{trabajo.categoria || 'General'}</span>
@@ -671,21 +820,21 @@ const Dashboard = () => {
         {/* ================= SECCIÓN GESTIÓN DE SERVICIOS ================= */}
         <div id="admin-servicios" className="pt-12" >
           <div className="text-center mb-8">
-            <h2 className="text-xl md:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
+            <h2 className="text-lg sm:text-xl lg:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
               Servicios
             </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 text-sm italic mt-1">Agregá o modificá los servicios del carrusel de inicio.</p>
+            <p className="text-neutral-600 dark:text-neutral-400 text-xs sm:text-sm italic mt-1">Agregá o modificá los servicios del carrusel de inicio.</p>
           </div>
 
-          <form onSubmit={manejarSubmitServicio} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-8 md:p-12 mb-16 shadow-xl border-t-4 border-t-azul-logo">
-            <div className="border-b border-neutral-300/40 dark:border-neutral-800 pb-8 mb-10">
-              <h2 className="text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide mb-2">
+          <form onSubmit={manejarSubmitServicio} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-4 sm:p-6 lg:p-10 xl:p-12 mb-10 sm:mb-14 lg:mb-16 shadow-xl border-t-4 border-t-azul-logo">
+            <div className="border-b border-neutral-300/40 dark:border-neutral-800 pb-4 sm:pb-6 lg:pb-8 mb-6 lg:mb-10">
+              <h2 className="text-xl sm:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide mb-2">
                 {editandoServicioId ? 'Editar Servicio' : 'Subir Nuevo Servicio'}
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
+              <div className="md:col-span-6 space-y-4 sm:space-y-5 lg:space-y-6">
                 <div>
                   <label className="block text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase tracking-widest mb-2">Título del Servicio</label>
                   <input type="text" value={tituloServicio} onChange={(e) => setTituloServicio(e.target.value)} required placeholder="Ej: Retratos" className="w-full bg-white/70 dark:bg-neutral-950 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-4 py-3 text-sm focus:outline-none focus:border-azul-logo" />
@@ -696,11 +845,11 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="lg:col-span-6 flex flex-col justify-between">
+              <div className="md:col-span-6 flex flex-col justify-between">
                 <div>
                   <label className="block text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase tracking-widest mb-2">Imagen del Servicio</label>
 
-                  <div className="border-2 border-dashed border-azul-logo/40 bg-white/70 dark:bg-neutral-950 flex flex-col items-center justify-center text-center relative h-[140px]">
+                  <div className="border-2 border-dashed border-azul-logo/40 bg-white/70 dark:bg-neutral-950 flex flex-col items-center justify-center text-center relative h-[120px] sm:h-[130px] lg:h-[140px]">
                     <input
                       id="file-servicio"
                       type="file"
@@ -720,12 +869,19 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-4 mt-8">
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4 mt-6 lg:mt-8">
                   {editandoServicioId && (
                     <button type="button" onClick={cancelarEdicionServicio} className="text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase cursor-pointer">Cancelar</button>
                   )}
-                  <button type="submit" disabled={subiendoServicio} className="bg-azul-logo text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:opacity-90 cursor-pointer shadow-md">
-                    {subiendoServicio ? 'Guardando...' : (editandoServicioId ? 'Actualizar Servicio' : 'Crear Servicio')}
+                  <button
+                    type="submit"
+                    disabled={subiendoServicio || estadoBotones.servicio.tipo === 'procesando'}
+                    className={`w-full sm:w-auto px-6 lg:px-8 py-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors shadow-md ${claseEstadoBoton(
+                      estadoBotones.servicio,
+                      'bg-azul-logo border-azul-logo text-white hover:opacity-90 cursor-pointer'
+                    )}`}
+                  >
+                    {estadoBotones.servicio.tipo === 'idle' ? (editandoServicioId ? 'Actualizar Servicio' : 'Crear Servicio') : estadoBotones.servicio.texto}
                   </button>
                 </div>
               </div>
@@ -741,11 +897,11 @@ const Dashboard = () => {
             {servicios.length === 0 ? (
               <p className="text-neutral-500 text-center py-12 text-sm">No hay servicios publicados todavía.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
                 {servicios.map((s) => (
                   <div key={s._id} className="flex flex-col bg-[#78A4CB]/15 dark:bg-neutral-900 shadow-lg hover:-translate-y-1 transition-transform duration-300 border-t-2 border-t-azul-logo">
-                    <div className="h-48 bg-cover bg-center w-full" style={{ backgroundImage: `url(${s.imagen || ''})` }}></div>
-                    <div className="p-6 flex-grow flex flex-col justify-between">
+                    <div className="h-40 sm:h-44 lg:h-48 bg-cover bg-center w-full" style={{ backgroundImage: `url(${s.imagen || ''})` }}></div>
+                    <div className="p-4 sm:p-5 lg:p-6 flex-grow flex flex-col justify-between">
                       <div>
                         <h4 className="text-neutral-900 dark:text-white font-bold text-sm tracking-widest uppercase mb-1">{s.titulo}</h4>
                         <p className="text-neutral-700 dark:text-neutral-300 text-xs mt-1 line-clamp-2">{s.descripcion}</p>
@@ -769,19 +925,19 @@ const Dashboard = () => {
         {/* ========================================================== */}
         <div id="ajustes-perfil" className="pt-12 mt-8">
           <div className="text-center mb-8">
-            <h2 className="text-xl md:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
+            <h2 className="text-lg sm:text-xl lg:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
               Configurar Perfil
             </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 text-sm italic mt-1">
+            <p className="text-neutral-600 dark:text-neutral-400 text-xs sm:text-sm italic mt-1">
               Administrá tu foto de perfil, datos de contacto y seguridad de la cuenta.
             </p>
           </div>
 
-          <div className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-8 md:p-12 shadow-2xl border-t-4 border-t-azul-logo">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-4 sm:p-6 lg:p-10 xl:p-12 shadow-2xl border-t-4 border-t-azul-logo">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 xl:gap-8">
 
               {/* 1. FOTO DE PERFIL */}
-              <div className="flex flex-col items-center p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+              <div className="flex flex-col items-center p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Foto de Perfil</h3>
 
                 <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-azul-logo mb-4 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
@@ -809,15 +965,22 @@ const Dashboard = () => {
                     className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer"
                   />
                   {nuevaImagen && (
-                    <button type="submit" className="w-full py-2 bg-azul-logo text-white text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity">
-                      Guardar Foto
+                    <button
+                      type="submit"
+                      disabled={estadoBotones.avatar.tipo === 'procesando' || estadoBotones.avatar.tipo === 'exito'}
+                      className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                        estadoBotones.avatar,
+                        'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
+                      )}`}
+                    >
+                      {estadoBotones.avatar.tipo === 'idle' ? 'Guardar Foto' : estadoBotones.avatar.texto}
                     </button>
                   )}
                 </form>
               </div>
 
               {/* 2. REDES DE CONTACTO */}
-              <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+              <div className="p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-6">Redes de Contacto</h3>
 
                 <form onSubmit={handleGuardarWhatsapp} className="flex flex-col gap-3 mb-8">
@@ -837,8 +1000,15 @@ const Dashboard = () => {
                     />
                   </div>
 
-                  <button type="submit" className="w-full py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity">
-                    Guardar WhatsApp
+                  <button
+                    type="submit"
+                    disabled={estadoBotones.whatsapp.tipo === 'procesando'}
+                    className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                      estadoBotones.whatsapp,
+                      'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 cursor-pointer hover:opacity-90'
+                    )}`}
+                  >
+                    {estadoBotones.whatsapp.tipo === 'idle' ? 'Guardar WhatsApp' : estadoBotones.whatsapp.texto}
                   </button>
                 </form>
 
@@ -859,14 +1029,21 @@ const Dashboard = () => {
                     />
                   </div>
 
-                  <button type="submit" className="w-full py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold uppercase tracking-widest cursor-pointer hover:opacity-90 transition-opacity">
-                    Guardar Instagram
+                  <button
+                    type="submit"
+                    disabled={estadoBotones.instagram.tipo === 'procesando'}
+                    className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                      estadoBotones.instagram,
+                      'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 cursor-pointer hover:opacity-90'
+                    )}`}
+                  >
+                    {estadoBotones.instagram.tipo === 'idle' ? 'Guardar Instagram' : estadoBotones.instagram.texto}
                   </button>
                 </form>
               </div>
 
               {/* 3. SEGURIDAD */}
-              <div className="p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
+              <div className="md:col-span-2 xl:col-span-1 p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Seguridad</h3>
 
                 <form onSubmit={handleCambiarPassword} className="flex flex-col gap-4">
@@ -914,8 +1091,15 @@ const Dashboard = () => {
                     />
                   </div>
 
-                  <button type="submit" className="w-full py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-red-700 transition-colors mt-2">
-                    Cambiar Contraseña
+                  <button
+                    type="submit"
+                    disabled={estadoBotones.password.tipo === 'procesando'}
+                    className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors mt-2 ${claseEstadoBoton(
+                      estadoBotones.password,
+                      'bg-red-600 border-red-600 text-white cursor-pointer hover:bg-red-700'
+                    )}`}
+                  >
+                    {estadoBotones.password.tipo === 'idle' ? 'Cambiar Contraseña' : estadoBotones.password.texto}
                   </button>
                 </form>
               </div>

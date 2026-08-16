@@ -13,8 +13,7 @@ const Navbar = () => {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   const [usuario, setUsuario] = useState(null);
-  const [dropdownAbierto, setDropdownAbierto] =
-    useState(false);
+  const [dropdownAbierto, setDropdownAbierto] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -69,16 +68,10 @@ const Navbar = () => {
       }
     };
 
-    document.addEventListener(
-      "mousedown",
-      cerrarAfuera
-    );
+    document.addEventListener("mousedown", cerrarAfuera);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        cerrarAfuera
-      );
+      document.removeEventListener("mousedown", cerrarAfuera);
     };
   }, []);
 
@@ -94,10 +87,7 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      );
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -116,7 +106,6 @@ const Navbar = () => {
   const scrollToSection = (sectionId) => {
     cerrarMenu();
 
-    // Si ya estamos en Inicio
     if (location.pathname === "/") {
       if (sectionId === "inicio") {
         window.scrollTo({
@@ -151,7 +140,6 @@ const Navbar = () => {
       return;
     }
 
-    // Si estamos en Galería u otra página
     navigate("/", {
       state: {
         scrollTo: sectionId,
@@ -199,16 +187,30 @@ const Navbar = () => {
     menuAbierto ||
     esPaginaInterna;
 
+  const linkClasses = `
+    text-[11px]
+    lg:text-xs
+    font-bold
+    uppercase
+    tracking-[0.10em]
+    lg:tracking-[0.15em]
+    transition-colors
+    duration-300
+    relative
+    group
+    whitespace-nowrap
+  `;
+
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
         navbarSolido
           ? "bg-crema-suave dark:bg-neutral-950 border-b border-neutral-300/60 dark:border-white/5 shadow-md"
-          : "bg-transparent border-transparent pt-4"
+          : "bg-transparent border-transparent pt-3 lg:pt-4"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-center h-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 md:px-4 lg:px-6">
+        <div className="flex justify-between items-center h-20 lg:h-24">
 
           {/* ================= LOGO ================= */}
 
@@ -216,7 +218,16 @@ const Navbar = () => {
             onClick={() =>
               scrollToSection("inicio")
             }
-            className="flex items-center gap-3 group z-50 cursor-pointer"
+            className="
+              flex
+              items-center
+              gap-2
+              lg:gap-3
+              group
+              z-50
+              cursor-pointer
+              shrink-0
+            "
           >
             <img
               src={
@@ -228,15 +239,34 @@ const Navbar = () => {
                   : "/logo2.png"
               }
               alt="MB Fotografía"
-              className="h-10 md:h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+              className="
+                h-9
+                md:h-9
+                lg:h-12
+                w-auto
+                object-contain
+                group-hover:scale-105
+                transition-transform
+                duration-300
+              "
             />
 
             <span
-              className={`text-xl md:text-2xl tracking-widest font-bold transition-colors ${
-                navbarSolido
-                  ? "text-neutral-900 dark:text-white"
-                  : "text-white"
-              }`}
+              className={`
+                text-base
+                md:text-[17px]
+                lg:text-2xl
+                tracking-[0.14em]
+                lg:tracking-widest
+                font-bold
+                transition-colors
+                whitespace-nowrap
+                ${
+                  navbarSolido
+                    ? "text-neutral-900 dark:text-white"
+                    : "text-white"
+                }
+              `}
             >
               FOTOGRAFÍA
             </span>
@@ -244,19 +274,17 @@ const Navbar = () => {
 
           {/* ================= MOBILE ================= */}
 
-          <div className="flex items-center gap-4 md:hidden z-50">
+          <div className="flex items-center gap-3 md:hidden z-50">
             <ThemeToggle />
 
             <button
               className="text-neutral-900 dark:text-white focus:outline-none"
               onClick={() =>
-                setMenuAbierto(
-                  !menuAbierto
-                )
+                setMenuAbierto(!menuAbierto)
               }
             >
               <svg
-                className="w-8 h-8"
+                className="w-7 h-7"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -284,10 +312,33 @@ const Navbar = () => {
 
           <div
             className={`
-              absolute md:static top-0 left-0 w-full md:w-auto h-screen md:h-auto
-              flex flex-col md:flex-row items-center justify-center md:justify-end
-              space-y-8 md:space-y-0 md:space-x-8 lg:space-x-10
-              transition-all duration-500 ease-in-out
+              absolute
+              md:static
+              top-0
+              left-0
+              w-full
+              md:w-auto
+              h-screen
+              md:h-auto
+
+              flex
+              flex-col
+              md:flex-row
+
+              items-center
+              justify-center
+              md:justify-end
+
+              space-y-8
+              md:space-y-0
+
+              md:gap-4
+              lg:gap-8
+
+              transition-all
+              duration-500
+              ease-in-out
+
               ${
                 menuAbierto
                   ? "bg-crema-suave dark:bg-neutral-950 translate-y-0 opacity-100"
@@ -295,14 +346,12 @@ const Navbar = () => {
               }
             `}
           >
-
             {/* INICIO */}
-
             <button
               onClick={() =>
                 scrollToSection("inicio")
               }
-              className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group cursor-pointer ${
+              className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
                   : "text-white/90 hover:text-white"
@@ -314,12 +363,11 @@ const Navbar = () => {
             </button>
 
             {/* SOBRE MI */}
-
             <button
               onClick={() =>
                 scrollToSection("sobre-mi")
               }
-              className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group cursor-pointer ${
+              className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
                   : "text-white/90 hover:text-white"
@@ -331,11 +379,10 @@ const Navbar = () => {
             </button>
 
             {/* GALERÍA */}
-
             <Link
               to="/galeria"
               onClick={cerrarMenu}
-              className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group ${
+              className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
                   : "text-white/90 hover:text-white"
@@ -347,12 +394,11 @@ const Navbar = () => {
             </Link>
 
             {/* SERVICIOS */}
-
             <button
               onClick={() =>
                 scrollToSection("servicios")
               }
-              className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group cursor-pointer ${
+              className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
                   : "text-white/90 hover:text-white"
@@ -364,12 +410,11 @@ const Navbar = () => {
             </button>
 
             {/* CONTACTO */}
-
             <button
               onClick={() =>
                 scrollToSection("contacto")
               }
-              className={`text-sm md:text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-300 relative group cursor-pointer ${
+              className={`${linkClasses} ${
                 navbarSolido
                   ? "text-neutral-900 dark:text-neutral-300 hover:text-azul-logo dark:hover:text-white"
                   : "text-white/90 hover:text-white"
@@ -387,16 +432,32 @@ const Navbar = () => {
                 className="relative"
                 ref={dropdownRef}
               >
-
-                {/* AVATAR */}
-
                 <button
                   onClick={() =>
                     setDropdownAbierto(
                       !dropdownAbierto
                     )
                   }
-                  className="w-11 h-11 rounded-full overflow-hidden border-2 border-azul-logo focus:outline-none flex items-center justify-center bg-neutral-200 dark:bg-neutral-800 cursor-pointer shadow-md hover:scale-105 transition-transform"
+                  className="
+                    w-9
+                    h-9
+                    lg:w-11
+                    lg:h-11
+                    rounded-full
+                    overflow-hidden
+                    border-2
+                    border-azul-logo
+                    focus:outline-none
+                    flex
+                    items-center
+                    justify-center
+                    bg-neutral-200
+                    dark:bg-neutral-800
+                    cursor-pointer
+                    shadow-md
+                    hover:scale-105
+                    transition-transform
+                  "
                 >
                   {usuario?.avatar ? (
                     <img
@@ -411,13 +472,8 @@ const Navbar = () => {
                   )}
                 </button>
 
-                {/* DROPDOWN */}
-
                 {dropdownAbierto && (
                   <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-neutral-900 border border-neutral-300/40 dark:border-white/10 shadow-2xl py-2 z-50 text-left">
-
-                    {/* NOMBRE */}
-
                     <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
                       <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">
                         Conectado como
@@ -427,8 +483,6 @@ const Navbar = () => {
                         Michael Bogue
                       </p>
                     </div>
-
-                    {/* ADMINISTRAR GALERÍA */}
 
                     <button
                       onClick={() =>
@@ -441,8 +495,6 @@ const Navbar = () => {
                       🖼️ Administrar Galería
                     </button>
 
-                    {/* ADMINISTRAR SERVICIOS */}
-
                     <button
                       onClick={() =>
                         irSeccionDashboard(
@@ -453,8 +505,6 @@ const Navbar = () => {
                     >
                       📷 Administrar Servicios
                     </button>
-
-                    {/* CONFIGURAR PERFIL */}
 
                     <button
                       onClick={() =>
@@ -467,8 +517,6 @@ const Navbar = () => {
                       ⚙️ Configurar Perfil
                     </button>
 
-                    {/* CERRAR SESIÓN */}
-
                     <div className="border-t border-neutral-200 dark:border-neutral-800 mt-1 pt-1">
                       <button
                         onClick={
@@ -479,7 +527,6 @@ const Navbar = () => {
                         🚪 Cerrar Sesión
                       </button>
                     </div>
-
                   </div>
                 )}
               </div>
@@ -487,20 +534,34 @@ const Navbar = () => {
               <Link
                 to="/login"
                 onClick={cerrarMenu}
-                className={`text-xs font-bold uppercase tracking-widest px-6 py-2.5 transition-all duration-300 ${
-                  navbarSolido
-                    ? "text-neutral-900 border border-neutral-300 hover:bg-azul-logo hover:text-white hover:border-azul-logo dark:text-white dark:border-white/40"
-                    : "text-white border border-white/40 bg-black/20 backdrop-blur-sm hover:bg-azul-logo hover:border-azul-logo"
-                }`}
+                className={`
+                  text-[10px]
+                  lg:text-xs
+                  font-bold
+                  uppercase
+                  tracking-[0.12em]
+                  lg:tracking-widest
+                  px-3
+                  lg:px-6
+                  py-2
+                  lg:py-2.5
+                  whitespace-nowrap
+                  transition-all
+                  duration-300
+                  ${
+                    navbarSolido
+                      ? "text-neutral-900 border border-neutral-300 hover:bg-azul-logo hover:text-white hover:border-azul-logo dark:text-white dark:border-white/40"
+                      : "text-white border border-white/40 bg-black/20 backdrop-blur-sm hover:bg-azul-logo hover:border-azul-logo"
+                  }
+                `}
               >
                 Ingresar
               </Link>
             )}
 
-            <div className="hidden md:block">
+            <div className="hidden md:block shrink-0">
               <ThemeToggle />
             </div>
-
           </div>
         </div>
       </div>
