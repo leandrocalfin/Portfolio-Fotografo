@@ -91,7 +91,7 @@ const Footer = () => {
             Sitio desarrollado por{' '}
 
             <a
-              href="https://calfin-leandro.vercel.app/"
+              href="https://leandrocalfin.com.ar"
               target="_blank"
               rel="noopener noreferrer"
               className="text-azul-logo font-bold hover:text-neutral-900 dark:hover:text-white transition-colors duration-300"
