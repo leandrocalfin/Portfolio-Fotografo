@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
@@ -351,6 +351,43 @@ const Dashboard = () => {
   };
 
   // ==========================================
+  // REFERENCIAS PARA LLEVAR AL FORMULARIO QUE SE ESTÁ EDITANDO
+  // ==========================================
+  const formGaleriaRef = useRef(null);
+  const formServiciosRef = useRef(null);
+
+  const scrollAFormulario = (ref, offset = 110) => {
+    // Esperamos a que React termine de renderizar el modo edición y recién ahí
+    // calculamos la posición real del formulario.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const elemento = ref.current;
+        if (!elemento) return;
+
+        const y =
+          elemento.getBoundingClientRect().top +
+          window.scrollY -
+          offset;
+
+        window.scrollTo({
+          top: y,
+          behavior: 'smooth'
+        });
+      });
+    });
+  };
+
+  useEffect(() => {
+    if (!editandoId) return;
+    scrollAFormulario(formGaleriaRef);
+  }, [editandoId]);
+
+  useEffect(() => {
+    if (!editandoServicioId) return;
+    scrollAFormulario(formServiciosRef);
+  }, [editandoServicioId]);
+
+  // ==========================================
   // LÓGICA DE TRABAJOS
   // ==========================================
   const manejarCambioArchivos = (e) => {
@@ -391,7 +428,7 @@ const Dashboard = () => {
     setArchivos([]);
     setFotosActuales(trabajo.fotos || []);
     setMensaje({ texto: '', tipo: '' });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
   };
 
   const cancelarEdicion = () => {
@@ -515,7 +552,7 @@ const Dashboard = () => {
     setEditandoServicioId(servicio._id);
     setImagenServicioActual(servicio.imagen);
     setImagenServicio(null);
-    window.scrollTo({ top: 1200, behavior: 'smooth' });
+
   };
 
   const cancelarEdicionServicio = () => {
@@ -690,7 +727,7 @@ const Dashboard = () => {
             <p className="text-neutral-600 dark:text-neutral-400 text-xs sm:text-sm italic mt-1">Agregá o modificá los álbumes y sesiones fotográficas.</p>
           </div>
 
-          <form onSubmit={manejarSubmitTrabajo} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-4 sm:p-6 lg:p-10 xl:p-12 mb-10 sm:mb-14 lg:mb-16 shadow-xl border-t-4 border-t-azul-logo">
+          <form ref={formGaleriaRef} onSubmit={manejarSubmitTrabajo} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-4 sm:p-6 lg:p-10 xl:p-12 mb-10 sm:mb-14 lg:mb-16 shadow-xl border-t-4 border-t-azul-logo">
             <div className="border-b border-neutral-300/40 dark:border-neutral-800 pb-4 sm:pb-6 lg:pb-8 mb-6 lg:mb-10">
               <h2 className="text-xl sm:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide mb-2">
                 {editandoId ? 'Editar Álbum' : 'Subir Nuevo Álbum'}
@@ -826,7 +863,7 @@ const Dashboard = () => {
             <p className="text-neutral-600 dark:text-neutral-400 text-xs sm:text-sm italic mt-1">Agregá o modificá los servicios del carrusel de inicio.</p>
           </div>
 
-          <form onSubmit={manejarSubmitServicio} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-4 sm:p-6 lg:p-10 xl:p-12 mb-10 sm:mb-14 lg:mb-16 shadow-xl border-t-4 border-t-azul-logo">
+          <form ref={formServiciosRef} onSubmit={manejarSubmitServicio} className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-4 sm:p-6 lg:p-10 xl:p-12 mb-10 sm:mb-14 lg:mb-16 shadow-xl border-t-4 border-t-azul-logo">
             <div className="border-b border-neutral-300/40 dark:border-neutral-800 pb-4 sm:pb-6 lg:pb-8 mb-6 lg:mb-10">
               <h2 className="text-xl sm:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide mb-2">
                 {editandoServicioId ? 'Editar Servicio' : 'Subir Nuevo Servicio'}
