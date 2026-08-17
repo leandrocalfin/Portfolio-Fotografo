@@ -247,6 +247,10 @@ const Servicios = () => {
             loop={false}
             rewind={true}
 
+            // Inicia el carrusel en un servicio del medio
+            // para que visualmente haya tarjetas a ambos lados.
+            initialSlide={Math.floor(misServicios.length / 2)}
+
             effect="coverflow"
 
             grabCursor={true}
