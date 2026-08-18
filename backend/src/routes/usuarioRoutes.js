@@ -1,47 +1,92 @@
 import express from 'express';
-// 1. Importamos también actualizarInfoPerfil
-import { registrarUsuario, loginUsuario, cambiarPassword, obtenerPerfil, actualizarAvatar, actualizarInfoPerfil, obtenerPerfilPublico } from '../controllers/usuarioController.js';
 
-// Importamos los escudos y validadores
+import {
+  loginUsuario,
+  logoutUsuario,
+  obtenerSesion,
+  cambiarPassword,
+  obtenerPerfil,
+  actualizarAvatar,
+  actualizarInfoPerfil,
+  obtenerPerfilPublico
+} from '../controllers/usuarioController.js';
+
 import { loginLimiter } from '../middlewares/limiter.js';
 import { verificarToken } from '../middlewares/authMiddleware.js';
+import { verificarCsrf } from '../middlewares/csrfMiddleware.js';
 import { validarEsquema } from '../middlewares/validarZod.js';
-import { cambiarPasswordSchema } from '../schemas/usuarioSchema.js';
-import { uploadFotos } from '../middlewares/upload.js'; // O la ruta donde tengas tu multer configurado
+
+import {
+  loginSchema,
+  cambiarPasswordSchema
+} from '../schemas/usuarioSchema.js';
+
+import { uploadFotos } from '../config/cloudinary.js';
 
 const router = express.Router();
 
 // ==========================================
 // RUTAS PÚBLICAS
 // ==========================================
-router.post('/login', loginLimiter, loginUsuario);
-router.get('/perfil-publico', obtenerPerfilPublico);
+
+router.post(
+  '/login',
+  loginLimiter,
+  validarEsquema(loginSchema),
+  loginUsuario
+);
+
+router.get(
+  '/perfil-publico',
+  obtenerPerfilPublico
+);
+
+// ==========================================
+// SESIÓN
+// ==========================================
+
+router.get(
+  '/sesion',
+  verificarToken,
+  obtenerSesion
+);
+
+router.post(
+  '/logout',
+  verificarToken,
+  logoutUsuario
+);
+
 // ==========================================
 // RUTAS PRIVADAS
 // ==========================================
-router.put('/cambiar-password', 
-  verificarToken, 
-  validarEsquema(cambiarPasswordSchema), 
-  cambiarPassword 
-);
 
-// Ruta para obtener los datos del perfil (avatar, email, redes)
-router.get('/perfil', 
-  verificarToken, 
+router.get(
+  '/perfil',
+  verificarToken,
   obtenerPerfil
 );
 
-// Ruta para actualizar la foto de perfil (avatar)
+router.put(
+  '/cambiar-password',
+  verificarToken,
+  verificarCsrf,
+  validarEsquema(cambiarPasswordSchema),
+  cambiarPassword
+);
+
 router.put(
   '/perfil/avatar',
   verificarToken,
+  verificarCsrf,
   uploadFotos.single('imagen'),
   actualizarAvatar
 );
 
-// NUEVA RUTA: Para actualizar WhatsApp e Instagram
-router.put('/perfil/info', 
-  verificarToken, 
+router.put(
+  '/perfil/info',
+  verificarToken,
+  verificarCsrf,
   actualizarInfoPerfil
 );
 

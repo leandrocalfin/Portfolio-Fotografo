@@ -3,24 +3,94 @@ import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
 import dotenv from 'dotenv';
 
-// Asegurarnos de que las variables de entorno estén cargadas
 dotenv.config();
 
-// 1. Configuramos la conexión con tus credenciales del .env
+// ==========================================
+// 1. VALIDAR VARIABLES DE ENTORNO
+// ==========================================
+
+const {
+  CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET
+} = process.env;
+
+if (
+  !CLOUDINARY_CLOUD_NAME ||
+  !CLOUDINARY_API_KEY ||
+  !CLOUDINARY_API_SECRET
+) {
+  throw new Error(
+    'Faltan variables de entorno necesarias para Cloudinary.'
+  );
+}
+
+
+// ==========================================
+// 2. CONFIGURAR CLOUDINARY
+// ==========================================
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET
 });
 
-// 2. Le decimos a Multer dónde y cómo guardar los archivos
+
+// ==========================================
+// 3. CONFIGURAR STORAGE
+// ==========================================
+
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
+  cloudinary,
+
   params: {
-    folder: 'portfolio_fotografo', // Cloudinary creará esta carpeta automáticamente
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'], // Bloqueamos PDFs o archivos maliciosos
-  },
+    folder: 'portfolio_fotografo',
+
+    allowed_formats: [
+      'jpg',
+      'jpeg',
+      'png',
+      'webp'
+    ]
+  }
 });
 
-// 3. Exportamos el middleware (el inspector) para usarlo en nuestras rutas
-export const uploadFotos = multer({ storage: storage });
+
+// ==========================================
+// 4. CONFIGURAR MULTER
+// ==========================================
+
+export const uploadFotos = multer({
+
+  storage,
+
+  limits: {
+    // Máximo 10 MB por imagen
+    fileSize: 10 * 1024 * 1024,
+
+    // Máximo 7 archivos por request
+    files: 7
+  },
+
+  fileFilter: (req, file, cb) => {
+
+    const tiposPermitidos = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
+
+    if (!tiposPermitidos.includes(file.mimetype)) {
+      return cb(
+        new multer.MulterError(
+          'LIMIT_UNEXPECTED_FILE',
+          file.fieldname
+        )
+      );
+    }
+
+    cb(null, true);
+  }
+
+});

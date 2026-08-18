@@ -1,78 +1,282 @@
 import Servicio from '../models/Servicio.js';
 import { v2 as cloudinary } from 'cloudinary';
 
-export const obtenerServicios = async (req, res) => {
-  try {
-    const servicios = await Servicio.find().sort({ createdAt: -1 });
-    res.json({ servicios });
-  } catch (error) {
-    res.status(500).json({ mensaje: "Error al obtener los servicios", error: error.message });
-  }
-};
+import { servicioSchema } from '../schemas/servicioSchema.js';
 
-export const crearServicio = async (req, res) => {
+// ==========================================
+// FUNCIÓN AUXILIAR
+// Obtener public_id desde una URL de Cloudinary
+// ==========================================
+const obtenerPublicIdCloudinary = (imagenUrl) => {
   try {
-    const { titulo, descripcion, link } = req.body;
-    
-    // Capturamos la URL de la imagen de forma segura contemplando distintas versiones de multer-storage
-    let imagenUrl = "";
-    if (req.file) {
-      imagenUrl = req.file.path || req.file.secure_url || req.file.url;
+    const match = imagenUrl.match(
+      /\/v\d+\/(.+)\.[a-zA-Z0-9]+$/
+    );
+
+    if (match && match[1]) {
+      return match[1];
     }
 
-    const nuevoServicio = new Servicio({
-      titulo,
-      descripcion,
-      imagen: imagenUrl,
-      link: link || "#contacto"
-    });
-
-    const servicioGuardado = await nuevoServicio.save();
-    res.status(201).json({ mensaje: "Servicio creado con éxito", servicio: servicioGuardado });
-  } catch (error) {
-    console.error("Error detallado al crear servicio:", error);
-    res.status(500).json({ mensaje: "Error al crear el servicio", error: error.message });
+    return null;
+  } catch {
+    return null;
   }
 };
 
+
+// ==========================================
+// 1. OBTENER SERVICIOS
+// ==========================================
+export const obtenerServicios = async (req, res) => {
+  try {
+    const servicios = await Servicio
+      .find()
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      servicios
+    });
+
+  } catch (error) {
+    console.error(
+      'ERROR AL OBTENER SERVICIOS:',
+      error
+    );
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
+  }
+};
+
+
+// ==========================================
+// 2. CREAR SERVICIO
+// ==========================================
+export const crearServicio = async (req, res) => {
+  try {
+    let imagenUrl = '';
+
+    if (req.file) {
+      imagenUrl =
+        req.file.path ||
+        req.file.secure_url ||
+        req.file.url ||
+        '';
+    }
+
+    const datosRecibidos = {
+      titulo: req.body.titulo,
+      descripcion: req.body.descripcion,
+      imagen: imagenUrl,
+      link: req.body.link || '#contacto'
+    };
+
+    // Validación antes de guardar
+    const datosValidados =
+      servicioSchema.parse(datosRecibidos);
+
+    const nuevoServicio = new Servicio(
+      datosValidados
+    );
+
+    const servicioGuardado =
+      await nuevoServicio.save();
+
+    return res.status(201).json({
+      mensaje: 'Servicio creado con éxito.',
+      servicio: servicioGuardado
+    });
+
+  } catch (error) {
+
+    if (error.name === 'ZodError') {
+      return res.status(400).json({
+        mensaje: 'Los datos enviados no son válidos.',
+        errores: error.issues.map(
+          (issue) => issue.message
+        )
+      });
+    }
+
+    console.error(
+      'ERROR AL CREAR SERVICIO:',
+      error
+    );
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
+  }
+};
+
+
+// ==========================================
+// 3. ACTUALIZAR SERVICIO
+// ==========================================
 export const actualizarServicio = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, descripcion, link, imagenExistente } = req.body;
 
-    let imagenUrl = imagenExistente;
-    if (req.file) {
-      imagenUrl = req.file.path || req.file.secure_url || req.file.url;
+    // Buscamos primero el servicio original
+    const servicioOriginal =
+      await Servicio.findById(id);
+
+    if (!servicioOriginal) {
+      return res.status(404).json({
+        mensaje: 'Servicio no encontrado.'
+      });
     }
 
-    const servicioActualizado = await Servicio.findByIdAndUpdate(
-      id,
-      { titulo, descripcion, imagen: imagenUrl, link },
-      { new: true }
+    let imagenUrl =
+      req.body.imagenExistente ||
+      servicioOriginal.imagen ||
+      '';
+
+    // Si se sube una imagen nueva,
+    // reemplazamos la anterior.
+    if (req.file) {
+      imagenUrl =
+        req.file.path ||
+        req.file.secure_url ||
+        req.file.url ||
+        '';
+    }
+
+    const datosRecibidos = {
+      titulo: req.body.titulo,
+      descripcion: req.body.descripcion,
+      imagen: imagenUrl,
+      link: req.body.link || '#contacto'
+    };
+
+    const datosValidados =
+      servicioSchema.parse(datosRecibidos);
+
+    const imagenAnterior =
+      servicioOriginal.imagen;
+
+    const servicioActualizado =
+      await Servicio.findByIdAndUpdate(
+        id,
+        datosValidados,
+        {
+          new: true,
+          runValidators: true
+        }
+      );
+
+    // Si había una imagen anterior y se cambió,
+    // intentamos eliminarla de Cloudinary.
+    if (
+      req.file &&
+      imagenAnterior &&
+      imagenAnterior !== imagenUrl
+    ) {
+      try {
+        const publicId =
+          obtenerPublicIdCloudinary(
+            imagenAnterior
+          );
+
+        if (publicId) {
+          await cloudinary.uploader.destroy(
+            publicId
+          );
+        }
+
+      } catch (errorCloudinary) {
+        console.error(
+          'ERROR AL BORRAR IMAGEN ANTERIOR DE CLOUDINARY:',
+          errorCloudinary
+        );
+      }
+    }
+
+    return res.status(200).json({
+      mensaje: 'Servicio actualizado con éxito.',
+      servicio: servicioActualizado
+    });
+
+  } catch (error) {
+
+    if (error.name === 'ZodError') {
+      return res.status(400).json({
+        mensaje: 'Los datos enviados no son válidos.',
+        errores: error.issues.map(
+          (issue) => issue.message
+        )
+      });
+    }
+
+    console.error(
+      'ERROR AL ACTUALIZAR SERVICIO:',
+      error
     );
 
-    if (!servicioActualizado) {
-      return res.status(404).json({ mensaje: "Servicio no encontrado" });
-    }
-
-    res.json({ mensaje: "Servicio actualizado con éxito", servicio: servicioActualizado });
-  } catch (error) {
-    console.error("Error detallado al actualizar servicio:", error);
-    res.status(500).json({ mensaje: "Error al actualizar el servicio", error: error.message });
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
   }
 };
 
+
+// ==========================================
+// 4. ELIMINAR SERVICIO
+// ==========================================
 export const eliminarServicio = async (req, res) => {
   try {
     const { id } = req.params;
-    const servicioEliminado = await Servicio.findByIdAndDelete(id);
 
-    if (!servicioEliminado) {
-      return res.status(404).json({ mensaje: "Servicio no encontrado" });
+    const servicio =
+      await Servicio.findById(id);
+
+    if (!servicio) {
+      return res.status(404).json({
+        mensaje: 'Servicio no encontrado.'
+      });
     }
 
-    res.json({ mensaje: "Servicio eliminado correctamente" });
+    const imagenUrl =
+      servicio.imagen;
+
+    await Servicio.findByIdAndDelete(id);
+
+    // Intentamos limpiar también la imagen
+    // de Cloudinary.
+    if (imagenUrl) {
+      try {
+        const publicId =
+          obtenerPublicIdCloudinary(
+            imagenUrl
+          );
+
+        if (publicId) {
+          await cloudinary.uploader.destroy(
+            publicId
+          );
+        }
+
+      } catch (errorCloudinary) {
+        console.error(
+          'ERROR AL BORRAR IMAGEN DE CLOUDINARY:',
+          errorCloudinary
+        );
+      }
+    }
+
+    return res.status(200).json({
+      mensaje: 'Servicio eliminado correctamente.'
+    });
+
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al eliminar el servicio", error: error.message });
+    console.error(
+      'ERROR AL ELIMINAR SERVICIO:',
+      error
+    );
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
   }
 };

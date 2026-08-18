@@ -15,8 +15,6 @@ import DetalleTrabajo from "./pages/DetalleTrabajo";
 import WhatsApp from "./components/WhatsApp";
 import Footer from "./components/Footer";
 
-import axios from "axios";
-
 // ==========================================
 // CONTROL GLOBAL DEL SCROLL
 // ==========================================
@@ -136,52 +134,6 @@ const ScrollManager = () => {
 
   return null;
 };
-
-// ==========================================
-// VIGILANTE GLOBAL DE SESIÓN
-// ==========================================
-
-axios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-
-  (error) => {
-    const status =
-      error.response?.status;
-
-    const token =
-      localStorage.getItem("token");
-
-    // Solo mandar al login si existía una
-    // sesión y el token dejó de ser válido.
-    if (
-      token &&
-      (status === 401 ||
-        status === 403)
-    ) {
-      localStorage.removeItem(
-        "token"
-      );
-
-      localStorage.removeItem(
-        "ultimaActividad"
-      );
-
-      // Evitamos recargar /login
-      // si ya estamos ahí.
-      if (
-        window.location.pathname !==
-        "/login"
-      ) {
-        window.location.href =
-          "/login";
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
 
 // ==========================================
 // APP

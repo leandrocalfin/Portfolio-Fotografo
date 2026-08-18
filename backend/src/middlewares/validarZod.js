@@ -1,25 +1,62 @@
+import { ZodError } from 'zod';
+
 export const validarEsquema = (esquema) => (req, res, next) => {
   try {
-    // 1. Extraemos las URLs que Multer/Cloudinary nos dejó en req.files
-    // (Si req.files no existe, devolvemos un array vacío)
-    const urlsFotos = req.files ? req.files.map(archivo => archivo.path) : [];
+    // ==========================================
+    // 1. OBTENER FOTOS SI EXISTEN
+    // ==========================================
 
-    // 2. Unimos el texto del body con el array de fotos para que Zod lo vea todo junto
+    const urlsFotos = Array.isArray(req.files)
+      ? req.files.map((archivo) => archivo.path)
+      : [];
+
+    // ==========================================
+    // 2. PREPARAR DATOS PARA ZOD
+    // ==========================================
+
     const datosAValidar = {
-      ...req.body,
-      fotos: urlsFotos 
+      ...req.body
     };
 
-    // 3. Zod ahora revisa todo el paquete completo
-    esquema.parse(datosAValidar);
-    
-    // Si pasa la validación, seguimos al controlador
-    next(); 
+    // Solo agregamos "fotos" cuando realmente
+    // estamos procesando archivos múltiples.
+    if (Array.isArray(req.files)) {
+      datosAValidar.fotos = urlsFotos;
+    }
+
+    // ==========================================
+    // 3. VALIDAR
+    // ==========================================
+
+    const datosValidados = esquema.parse(datosAValidar);
+
+    // Reemplazamos el body por los datos que
+    // Zod ya validó y transformó.
+    req.body = datosValidados;
+
+    next();
+
   } catch (error) {
-    // Si falla, devolvemos los errores prolijos
-    return res.status(400).json({
-      mensaje: "Errores de validación en los datos enviados.",
-      errores: error.errors.map(err => err.message)
+
+    // ==========================================
+    // ERROR DE VALIDACIÓN
+    // ==========================================
+
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        mensaje: 'Los datos enviados no son válidos.',
+        errores: error.issues.map((issue) => issue.message)
+      });
+    }
+
+    // ==========================================
+    // ERROR INESPERADO
+    // ==========================================
+
+    console.error('ERROR EN VALIDACIÓN:', error);
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
     });
   }
 };

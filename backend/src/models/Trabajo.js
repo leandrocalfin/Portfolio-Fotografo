@@ -1,49 +1,68 @@
 import mongoose from 'mongoose';
 
-// Definimos el esquema (el molde) para un Trabajo fotográfico
+// ==========================================
+// MODELO: TRABAJO FOTOGRÁFICO
+// ==========================================
+
 const trabajoSchema = new mongoose.Schema({
+
   titulo: {
     type: String,
     required: [true, 'El título es obligatorio.'],
-    trim: true // Borra espacios vacíos accidentales al inicio o final
+    trim: true,
+    minlength: [3, 'El título debe tener al menos 3 caracteres.'],
+    maxlength: [50, 'El título no puede superar los 50 caracteres.']
   },
+
   descripcion: {
     type: String,
     required: [true, 'La descripción es obligatoria.'],
-    trim: true
+    trim: true,
+    minlength: [10, 'La descripción debe tener al menos 10 caracteres.'],
+    maxlength: [1000, 'La descripción no puede superar los 1000 caracteres.']
   },
-  // NUEVO: Agregamos el campo categoría
+
   categoria: {
     type: String,
     required: [true, 'La categoría es obligatoria.'],
-    trim: true
+    trim: true,
+    minlength: [2, 'La categoría debe tener al menos 2 caracteres.'],
+    maxlength: [50, 'La categoría no puede superar los 50 caracteres.']
   },
-  // Guardaremos un array de textos (las URLs de las imágenes que subirás a Cloudinary)
+
   fotos: {
     type: [String],
     required: [true, 'Las fotos son obligatorias.'],
+
     validate: {
-      // Esta es una función validadora personalizada de Mongoose
-      validator: function(array) {
-        // Tu regla de oro: entre 5 y 7 fotos únicamente
-        return array.length >= 5 && array.length <= 7;
+      validator: function (array) {
+        return (
+          Array.isArray(array) &&
+          array.length >= 5 &&
+          array.length <= 7
+        );
       },
-      message: 'Un trabajo debe tener obligatoriamente entre 5 y 7 fotos.'
+
+      message:
+        'Un trabajo debe tener obligatoriamente entre 5 y 7 fotos.'
     }
   },
-  
-  // 👇 EL CAMBIO ESTÁ ACÁ 👇
+
   linkDrive: {
     type: String,
-    required: false, // Ahora Mongoose sabe que es opcional
-    trim: true
+    required: false,
+    trim: true,
+    maxlength: [500, 'El enlace de Google Drive es demasiado largo.']
   },
-  
+
   fechaCreacion: {
     type: Date,
-    default: Date.now // Guarda automáticamente el día y hora de creación
+    default: Date.now
   }
+
 });
 
-// Exportamos el modelo para usarlo en nuestros controladores
-export const Trabajo = mongoose.model('Trabajo', trabajoSchema);
+export const Trabajo = mongoose.model(
+  'Trabajo',
+  trabajoSchema
+);

@@ -1,12 +1,25 @@
 import rateLimit from 'express-rate-limit';
 
-// Creamos un escudo específico para la ruta de Login
+// ==========================================
+// PROTECCIÓN CONTRA FUERZA BRUTA EN LOGIN
+// ==========================================
+
 export const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // Tiempo de castigo: 15 minutos (en milisegundos)
-  max: 5, // Límite: 5 intentos fallidos o exitosos por IP dentro de esos 15 minutos
-  message: { 
-    mensaje: 'Demasiados intentos de inicio de sesión desde esta IP. Por favor, intenta de nuevo en 15 minutos.' 
+  // Ventana de tiempo: 15 minutos
+  windowMs: 15 * 60 * 1000,
+
+  // Máximo de intentos fallidos por IP
+  max: 5,
+
+  // Los logins exitosos no consumen intentos
+  skipSuccessfulRequests: true,
+
+  // Respuesta cuando se supera el límite
+  message: {
+    mensaje:
+      'Demasiados intentos de inicio de sesión. Intenta nuevamente en 15 minutos.'
   },
-  standardHeaders: true, // Devuelve información del límite en las cabeceras HTTP
-  legacyHeaders: false, // Deshabilita cabeceras antiguas
+
+  standardHeaders: true,
+  legacyHeaders: false
 });

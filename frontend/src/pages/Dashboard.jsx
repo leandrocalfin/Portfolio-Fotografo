@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/api';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -10,20 +10,36 @@ const Dashboard = () => {
   // TEMPORIZADOR DE INACTIVIDAD ROBUSTO
   // ==========================================
   useEffect(() => {
-    const TIEMPO_LIMITE = 5 * 60 * 1000; // 5 minutos en milisegundos
+    const TIEMPO_LIMITE = 5 * 60 * 1000;
 
     if (!localStorage.getItem('ultimaActividad')) {
       localStorage.setItem('ultimaActividad', Date.now());
     }
 
-    const verificarInactividad = () => {
-      const ultimaActividad = localStorage.getItem('ultimaActividad');
-      const ahora = Date.now();
-
-      if (ahora - ultimaActividad > TIEMPO_LIMITE) {
-        localStorage.removeItem('token');
+    const cerrarSesionPorInactividad = async () => {
+      try {
+        await api.post('/api/usuarios/logout');
+      } catch (error) {
+        console.error('Error al cerrar sesión por inactividad:', error);
+      } finally {
+        sessionStorage.removeItem('csrfToken');
         localStorage.removeItem('ultimaActividad');
         navigate('/login');
+      }
+    };
+
+    const verificarInactividad = () => {
+      const ultimaActividad = Number(
+        localStorage.getItem('ultimaActividad') || 0
+      );
+
+      const ahora = Date.now();
+
+      if (
+        ultimaActividad &&
+        ahora - ultimaActividad > TIEMPO_LIMITE
+      ) {
+        cerrarSesionPorInactividad();
       }
     };
 
@@ -31,7 +47,10 @@ const Dashboard = () => {
       localStorage.setItem('ultimaActividad', Date.now());
     };
 
-    const intervalo = setInterval(verificarInactividad, 60000);
+    const intervalo = setInterval(
+      verificarInactividad,
+      60000
+    );
 
     window.addEventListener('mousemove', actualizarActividad);
     window.addEventListener('keydown', actualizarActividad);
@@ -166,35 +185,52 @@ const Dashboard = () => {
     return claseNormal;
   };
 
-  const token = localStorage.getItem('token');
-
-  // Proteger la ruta y cargar datos
+  // ==========================================
+  // PROTEGER RUTA Y RECUPERAR SESIÓN
+  // ==========================================
   useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    obtenerTrabajos();
-    obtenerServicios();
-    obtenerPerfil();
-  }, [token, navigate]);
+    const iniciarDashboard = async () => {
+      try {
+        const sesion = await api.get('/api/usuarios/sesion');
+
+        sessionStorage.setItem(
+          'csrfToken',
+          sesion.data.csrfToken
+        );
+
+        await Promise.all([
+          obtenerTrabajos(),
+          obtenerServicios(),
+          obtenerPerfil()
+        ]);
+
+      } catch (error) {
+        console.error('Sesión no válida:', error);
+        sessionStorage.removeItem('csrfToken');
+        localStorage.removeItem('ultimaActividad');
+        navigate('/login');
+
+      } finally {
+        }
+    };
+
+    iniciarDashboard();
+  }, [navigate]);
 
 
   // Obtener trabajos, servicios y perfil
   const obtenerTrabajos = async () => {
     try {
-      const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/trabajos`);
+      const respuesta = await api.get(`/api/trabajos`);
       setTrabajos(respuesta.data.trabajos);
-      setCargando(false);
     } catch (error) {
       console.error("Error al cargar trabajos:", error);
-      setCargando(false);
     }
   };
 
   const obtenerServicios = async () => {
     try {
-      const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/servicios`);
+      const respuesta = await api.get(`/api/servicios`);
       const datosServicios = respuesta.data.servicios || respuesta.data;
       setServicios(Array.isArray(datosServicios) ? datosServicios : []);
     } catch (error) {
@@ -204,9 +240,7 @@ const Dashboard = () => {
 
   const obtenerPerfil = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/usuarios/perfil`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/api/usuarios/perfil`);
       setPerfil(res.data);
       setWhatsapp(res.data.whatsapp || '');
       setInstagram(res.data.instagram || '');
@@ -228,15 +262,9 @@ const Dashboard = () => {
     formData.append('imagen', nuevaImagen);
 
     try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/usuarios/perfil/avatar`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
+      const res = await api.put(
+        `/api/usuarios/perfil/avatar`,
+        formData
       );
 
       setPerfil((prev) => ({ ...prev, avatar: res.data.avatar }));
@@ -263,10 +291,9 @@ const Dashboard = () => {
     actualizarEstadoBoton('whatsapp', 'procesando', 'Guardando...');
 
     try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/usuarios/perfil/info`,
-        { whatsapp },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.put(
+        `/api/usuarios/perfil/info`,
+        { whatsapp }
       );
 
       setPerfil((prev) => ({ ...prev, whatsapp: res.data.whatsapp }));
@@ -287,10 +314,9 @@ const Dashboard = () => {
     actualizarEstadoBoton('instagram', 'procesando', 'Guardando...');
 
     try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/usuarios/perfil/info`,
-        { instagram },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.put(
+        `/api/usuarios/perfil/info`,
+        { instagram }
       );
 
       setPerfil((prev) => ({ ...prev, instagram: res.data.instagram }));
@@ -329,10 +355,9 @@ const Dashboard = () => {
     actualizarEstadoBoton('password', 'procesando', 'Actualizando...');
 
     try {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/usuarios/cambiar-password`,
-        { passwordActual, passwordNueva },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `/api/usuarios/cambiar-password`,
+        { passwordActual, passwordNueva }
       );
 
       setPasswordActual('');
@@ -476,26 +501,14 @@ const Dashboard = () => {
 
     try {
       if (editandoId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_URL}/api/trabajos/${editandoId}`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${token}`
-            }
-          }
+        await api.put(
+          `/api/trabajos/${editandoId}`,
+          formData
         );
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/trabajos`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${token}`
-            }
-          }
+        await api.post(
+          `/api/trabajos`,
+          formData
         );
       }
 
@@ -523,9 +536,8 @@ const Dashboard = () => {
     actualizarEstadoBoton('eliminarTrabajo', 'procesando', 'Eliminando...');
 
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/trabajos/${idParaEliminar}`,
-        { headers: { 'Authorization': `Bearer ${token}` } }
+      await api.delete(
+        `/api/trabajos/${idParaEliminar}`
       );
 
       if (editandoId === idParaEliminar) cancelarEdicion();
@@ -587,26 +599,14 @@ const Dashboard = () => {
 
     try {
       if (editandoServicioId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_URL}/api/servicios/${editandoServicioId}`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${token}`
-            }
-          }
+        await api.put(
+          `/api/servicios/${editandoServicioId}`,
+          formData
         );
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/servicios`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${token}`
-            }
-          }
+        await api.post(
+          `/api/servicios`,
+          formData
         );
       }
 
@@ -630,9 +630,8 @@ const Dashboard = () => {
     actualizarEstadoBoton('eliminarServicio', 'procesando', 'Eliminando...');
 
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/servicios/${idServicioParaEliminar}`,
-        { headers: { 'Authorization': `Bearer ${token}` } }
+      await api.delete(
+        `/api/servicios/${idServicioParaEliminar}`
       );
 
       if (editandoServicioId === idServicioParaEliminar) cancelarEdicionServicio();

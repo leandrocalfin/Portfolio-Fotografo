@@ -1,66 +1,94 @@
 import express from 'express';
-import { 
-  crearTrabajo, 
-  obtenerTrabajos, 
-  eliminarTrabajo, 
-  actualizarTrabajo 
+
+import {
+  crearTrabajo,
+  obtenerTrabajos,
+  eliminarTrabajo,
+  actualizarTrabajo
 } from '../controllers/trabajoController.js';
+
 import { verificarToken } from '../middlewares/authMiddleware.js';
-
-// IMPORTAMOS NUESTRO MIDDLEWARE DE CLOUDINARY
+import { verificarCsrf } from '../middlewares/csrfMiddleware.js';
 import { uploadFotos } from '../config/cloudinary.js';
-
-// Importamos el Modelo
 import { Trabajo } from '../models/Trabajo.js';
 
 const router = express.Router();
 
-router.get('/', obtenerTrabajos); 
+// ==========================================
+// MIDDLEWARE PARA SUBIDA DE IMÁGENES
+// ==========================================
+const subirImagenesTrabajo = (req, res, next) => {
+  uploadFotos.array('imagenes', 7)(req, res, (err) => {
+    if (err) {
+      console.error('ERROR AL SUBIR IMÁGENES:', err);
 
-// RUTA PARA OBTENER UN SOLO TRABAJO POR SU ID
-router.get('/:id', async (req, res) => {
-  try {
-    const trabajo = await Trabajo.findById(req.params.id);
-    if (!trabajo) {
-      return res.status(404).json({ mensaje: 'Trabajo no encontrado' });
+      return res.status(400).json({
+        mensaje: 'No se pudieron procesar las imágenes.'
+      });
     }
-    res.json(trabajo);
-  } catch (error) {
-    console.error("Error al buscar el trabajo:", error);
-    res.status(500).json({ mensaje: 'Error interno del servidor' });
+
+    next();
+  });
+};
+
+// ==========================================
+// RUTAS PÚBLICAS
+// ==========================================
+
+router.get(
+  '/',
+  obtenerTrabajos
+);
+
+router.get(
+  '/:id',
+  async (req, res) => {
+    try {
+      const trabajo = await Trabajo.findById(req.params.id);
+
+      if (!trabajo) {
+        return res.status(404).json({
+          mensaje: 'Trabajo no encontrado.'
+        });
+      }
+
+      return res.status(200).json(trabajo);
+
+    } catch (error) {
+      console.error('ERROR AL BUSCAR TRABAJO:', error);
+
+      return res.status(500).json({
+        mensaje: 'Error interno del servidor.'
+      });
+    }
   }
-});
+);
 
-// POST: CREAR TRABAJO (Con inspector de fotos)
-router.post('/', verificarToken, (req, res, next) => {
-  uploadFotos.array('imagenes', 7)(req, res, (err) => {
-    if (err) {
-      console.error('🚨 ERROR DE MULTER/CLOUDINARY AL CREAR:', err);
-      return res.status(500).json({ 
-        mensaje: 'Error al subir las fotos a la nube', 
-        detalle: err.message 
-      });
-    }
-    next();
-  });
-}, crearTrabajo);      
+// ==========================================
+// RUTAS PRIVADAS
+// ==========================================
 
-// DELETE: ELIMINAR TRABAJO
-router.delete('/:id', verificarToken, eliminarTrabajo);  
+router.post(
+  '/',
+  verificarToken,
+  verificarCsrf,
+  subirImagenesTrabajo,
+  crearTrabajo
+);
 
-// PUT: ACTUALIZAR TRABAJO (¡AQUÍ FALTABA EL INSPECTOR!)
-router.put('/:id', verificarToken, (req, res, next) => {
-  // Usamos el mismo inspector que en el POST para atrapar fotos nuevas si las hay
-  uploadFotos.array('imagenes', 7)(req, res, (err) => {
-    if (err) {
-      console.error('🚨 ERROR DE MULTER/CLOUDINARY AL EDITAR:', err);
-      return res.status(500).json({ 
-        mensaje: 'Error al subir las fotos nuevas a la nube', 
-        detalle: err.message 
-      });
-    }
-    next();
-  });
-}, actualizarTrabajo);   
+router.put(
+  '/:id',
+  verificarToken,
+  verificarCsrf,
+  subirImagenesTrabajo,
+  actualizarTrabajo
+);
+
+router.delete(
+  '/:id',
+  verificarToken,
+  verificarCsrf,
+  eliminarTrabajo
+);
 
 export default router;

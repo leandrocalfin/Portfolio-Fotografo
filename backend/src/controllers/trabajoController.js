@@ -1,172 +1,405 @@
-import { v2 as cloudinary } from 'cloudinary'; // <-- NUEVO: Para poder borrar físicamente de la nube
+import { v2 as cloudinary } from 'cloudinary';
+
 import { Trabajo } from '../models/Trabajo.js';
 import { crearTrabajoSchema } from '../schemas/trabajoSchema.js';
 
 // ==========================================
-// CREAR: Subir un nuevo trabajo
+// FUNCIÓN AUXILIAR
+// Obtener public_id de una URL de Cloudinary
+// ==========================================
+const obtenerPublicIdCloudinary = (fotoUrl) => {
+  try {
+    const match = fotoUrl.match(/\/v\d+\/(.+)\.[a-zA-Z0-9]+$/);
+
+    if (match && match[1]) {
+      return match[1];
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+
+// ==========================================
+// 1. CREAR TRABAJO
 // ==========================================
 export const crearTrabajo = async (req, res) => {
   try {
-    const urlsFotosObtenidas = req.files ? req.files.map(archivo => archivo.path) : [];
+    const urlsFotosObtenidas = Array.isArray(req.files)
+      ? req.files.map((archivo) => archivo.path)
+      : [];
 
     const datosRecibidos = {
       titulo: req.body.titulo,
       descripcion: req.body.descripcion,
-      categoria: req.body.categoria, // Agregado por si tenías la categoría acá
+      categoria: req.body.categoria,
       linkDrive: req.body.linkDrive,
       fotos: urlsFotosObtenidas
     };
 
-    const datosValidados = crearTrabajoSchema.parse(datosRecibidos);
+    // Validamos antes de guardar
+    const datosValidados = crearTrabajoSchema.parse(
+      datosRecibidos
+    );
 
-    const nuevoTrabajo = new Trabajo(datosValidados);
+    const nuevoTrabajo = new Trabajo(
+      datosValidados
+    );
+
     await nuevoTrabajo.save();
 
-    res.status(201).json({
-      mensaje: '¡Trabajo fotográfico creado y fotos subidas con éxito!',
+    return res.status(201).json({
+      mensaje: 'Trabajo fotográfico creado correctamente.',
       trabajo: nuevoTrabajo
     });
 
   } catch (error) {
+
+    // ==========================================
+    // ERROR DE ZOD
+    // ==========================================
     if (error.name === 'ZodError') {
-      const mensajesDeError = error.issues.map(issue => issue.message);
-      return res.status(400).json({ errores: mensajesDeError });
+      return res.status(400).json({
+        mensaje: 'Los datos enviados no son válidos.',
+        errores: error.issues.map(
+          (issue) => issue.message
+        )
+      });
     }
-    console.error('Error al crear trabajo:', error);
-    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+
+    console.error(
+      'ERROR AL CREAR TRABAJO:',
+      error
+    );
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
   }
 };
 
+
 // ==========================================
-// LEER: Obtener todos los trabajos (Con Paginación)
+// 2. OBTENER TODOS LOS TRABAJOS
+// Con paginación
 // ==========================================
 export const obtenerTrabajos = async (req, res) => {
   try {
-    // 1. Capturamos qué página quiere ver el usuario y cuántos por página.
-    // Si no manda nada en la URL, asumimos por defecto: Página 1, Límite 10.
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
 
-    // 2. Calculamos cuántos documentos hay que "saltarse" (skip)
-    // Ejemplo: Si estoy en la página 2 con límite de 10, me salto los primeros 10.
+    // Página mínima: 1
+    const page = Math.max(
+      parseInt(req.query.page, 10) || 1,
+      1
+    );
+
+    // Límite solicitado por el cliente
+    const limitSolicitado =
+      parseInt(req.query.limit, 10) || 10;
+
+    // Nunca menos de 1 ni más de 50
+    const limit = Math.min(
+      Math.max(limitSolicitado, 1),
+      50
+    );
+
     const skip = (page - 1) * limit;
 
-    // 3. Ejecutamos la búsqueda aplicando el salto y el límite
-    const trabajos = await Trabajo.find()
-      .sort({ fechaCreacion: -1 }) // Los más nuevos primero
+    const trabajos = await Trabajo
+      .find()
+      .sort({
+        fechaCreacion: -1
+      })
       .skip(skip)
       .limit(limit);
 
-    // 4. Contamos cuántos trabajos hay en TOTAL en la base de datos
-    const totalTrabajos = await Trabajo.countDocuments();
+    const totalTrabajos =
+      await Trabajo.countDocuments();
 
-    // 5. Devolvemos las fotos y un pequeño resumen (metadata) para ayudar al frontend
-    res.status(200).json({
-      trabajos, // Acá va el array con las fotos
+    return res.status(200).json({
+      trabajos,
+
       paginacion: {
         paginaActual: page,
-        totalPaginas: Math.ceil(totalTrabajos / limit),
+        totalPaginas: Math.ceil(
+          totalTrabajos / limit
+        ),
         totalTrabajos,
         limite: limit
       }
     });
 
   } catch (error) {
-    console.error("Error al obtener trabajos:", error);
-    res.status(500).json({ mensaje: 'Error interno al obtener los trabajos.' });
+
+    console.error(
+      'ERROR AL OBTENER TRABAJOS:',
+      error
+    );
+
+    return res.status(500).json({
+      mensaje:
+        'Error interno al obtener los trabajos.'
+    });
   }
 };
 
+
 // ==========================================
-// ELIMINAR: Borrar un trabajo por su ID
+// 3. ELIMINAR TRABAJO
 // ==========================================
 export const eliminarTrabajo = async (req, res) => {
   try {
-    const { id } = req.params; 
-    
-    // Primero buscamos el trabajo para saber qué fotos borrar de la nube
-    const trabajoAEliminar = await Trabajo.findById(id);
+    const { id } = req.params;
+
+    // Primero buscamos el trabajo
+    const trabajoAEliminar =
+      await Trabajo.findById(id);
+
     if (!trabajoAEliminar) {
-      return res.status(404).json({ mensaje: 'El trabajo no existe o ya fue eliminado.' });
+      return res.status(404).json({
+        mensaje:
+          'El trabajo no existe o ya fue eliminado.'
+      });
     }
 
-    // Borramos todas sus fotos de Cloudinary para no dejar basura
-    if (trabajoAEliminar.fotos && trabajoAEliminar.fotos.length > 0) {
-      for (const fotoUrl of trabajoAEliminar.fotos) {
-        const match = fotoUrl.match(/\/v\d+\/(.+)\.\w+$/);
-        if (match && match[1]) {
-          await cloudinary.uploader.destroy(match[1]);
+    // ==========================================
+    // ELIMINAR DOCUMENTO DE MONGODB
+    // ==========================================
+
+    await Trabajo.findByIdAndDelete(id);
+
+    // ==========================================
+    // LIMPIAR FOTOS DE CLOUDINARY
+    // ==========================================
+
+    if (
+      Array.isArray(trabajoAEliminar.fotos) &&
+      trabajoAEliminar.fotos.length > 0
+    ) {
+
+      for (
+        const fotoUrl of trabajoAEliminar.fotos
+      ) {
+
+        try {
+
+          const publicId =
+            obtenerPublicIdCloudinary(fotoUrl);
+
+          if (publicId) {
+            await cloudinary.uploader.destroy(
+              publicId
+            );
+          }
+
+        } catch (errorCloudinary) {
+
+          // Si Cloudinary falla, no exponemos
+          // el error al usuario.
+          console.error(
+            'ERROR AL BORRAR FOTO DE CLOUDINARY:',
+            errorCloudinary
+          );
         }
       }
     }
-    
-    // Luego lo eliminamos de MongoDB
-    await Trabajo.findByIdAndDelete(id);
 
-    res.status(200).json({ mensaje: 'Trabajo eliminado correctamente de la base de datos y la nube.' });
+    return res.status(200).json({
+      mensaje:
+        'Trabajo eliminado correctamente.'
+    });
+
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al intentar eliminar el trabajo.' });
+
+    console.error(
+      'ERROR AL ELIMINAR TRABAJO:',
+      error
+    );
+
+    return res.status(500).json({
+      mensaje:
+        'Error al intentar eliminar el trabajo.'
+    });
   }
 };
 
+
 // ==========================================
-// ACTUALIZAR: Modificar un trabajo existente
+// 4. ACTUALIZAR TRABAJO
 // ==========================================
 export const actualizarTrabajo = async (req, res) => {
   try {
+
     const { id } = req.params;
-    const { titulo, descripcion, categoria, linkDrive } = req.body;
 
-    // 1. Buscamos el trabajo original para saber qué fotos tenía antes
-    const trabajoOriginal = await Trabajo.findById(id);
+    // ==========================================
+    // BUSCAR TRABAJO ORIGINAL
+    // ==========================================
+
+    const trabajoOriginal =
+      await Trabajo.findById(id);
+
     if (!trabajoOriginal) {
-      return res.status(404).json({ mensaje: 'Trabajo no encontrado' });
+      return res.status(404).json({
+        mensaje: 'Trabajo no encontrado.'
+      });
     }
 
-    // 2. Obtenemos las fotos que el usuario NO borró (vienen del Frontend)
-    let fotosExistentes = req.body.fotosExistentes || [];
-    if (typeof fotosExistentes === 'string') {
-      fotosExistentes = [fotosExistentes];
+    // ==========================================
+    // FOTOS EXISTENTES
+    // ==========================================
+
+    let fotosExistentes =
+      req.body.fotosExistentes || [];
+
+    // Cuando FormData manda una sola foto,
+    // puede llegar como string en lugar de array.
+    if (
+      typeof fotosExistentes === 'string'
+    ) {
+      fotosExistentes = [
+        fotosExistentes
+      ];
     }
 
-    // 3. LIMPIEZA CLOUDINARY: Borramos de la nube las fotos que eliminaste con la "X"
-    const fotosParaBorrar = (trabajoOriginal.fotos || []).filter(
-      (fotoVieja) => !fotosExistentes.includes(fotoVieja)
-    );
+    // Nos aseguramos de trabajar con un array
+    if (
+      !Array.isArray(fotosExistentes)
+    ) {
+      fotosExistentes = [];
+    }
 
-    for (const fotoUrl of fotosParaBorrar) {
-      const match = fotoUrl.match(/\/v\d+\/(.+)\.\w+$/);
-      if (match && match[1]) {
-        await cloudinary.uploader.destroy(match[1]);
+    // ==========================================
+    // FOTOS NUEVAS
+    // ==========================================
+
+    const nuevasFotos =
+      Array.isArray(req.files)
+        ? req.files.map(
+            (archivo) => archivo.path
+          )
+        : [];
+
+    // ==========================================
+    // DATOS PARA ACTUALIZAR
+    // ==========================================
+
+    const datosActualizados = {
+      titulo: req.body.titulo,
+      descripcion: req.body.descripcion,
+      categoria: req.body.categoria,
+      linkDrive: req.body.linkDrive,
+
+      fotos: [
+        ...fotosExistentes,
+        ...nuevasFotos
+      ]
+    };
+
+    // ==========================================
+    // VALIDAR CON ZOD
+    // ==========================================
+
+    const datosValidados =
+      crearTrabajoSchema.parse(
+        datosActualizados
+      );
+
+    // ==========================================
+    // DETECTAR FOTOS ELIMINADAS
+    // ==========================================
+
+    const fotosParaBorrar =
+      (trabajoOriginal.fotos || []).filter(
+        (fotoVieja) =>
+          !fotosExistentes.includes(
+            fotoVieja
+          )
+      );
+
+    // ==========================================
+    // ACTUALIZAR MONGODB
+    // ==========================================
+
+    const trabajoActualizado =
+      await Trabajo.findByIdAndUpdate(
+        id,
+
+        datosValidados,
+
+        {
+          new: true,
+          runValidators: true
+        }
+      );
+
+    // ==========================================
+    // BORRAR FOTOS ELIMINADAS DE CLOUDINARY
+    // ==========================================
+
+    for (
+      const fotoUrl of fotosParaBorrar
+    ) {
+
+      try {
+
+        const publicId =
+          obtenerPublicIdCloudinary(
+            fotoUrl
+          );
+
+        if (publicId) {
+
+          await cloudinary
+            .uploader
+            .destroy(publicId);
+        }
+
+      } catch (errorCloudinary) {
+
+        console.error(
+          'ERROR AL BORRAR FOTO DE CLOUDINARY:',
+          errorCloudinary
+        );
       }
     }
 
-    // 4. Preparamos los textos para actualizar e iniciamos la lista de fotos
-    const datosActualizados = {
-      titulo,
-      descripcion,
-      categoria,
-      linkDrive,
-      fotos: fotosExistentes // Acá le decimos a MongoDB: "quedate solo con estas"
-    };
+    return res.status(200).json({
+      mensaje:
+        'Trabajo actualizado correctamente.',
 
-    // 5. Si además vinieron archivos NUEVOS, los sumamos a la lista
-    if (req.files && req.files.length > 0) {
-      const nuevasFotos = req.files.map(file => file.path);
-      datosActualizados.fotos = [...datosActualizados.fotos, ...nuevasFotos];
-    }
-
-    // 6. Finalmente actualizamos en MongoDB
-    const trabajoActualizado = await Trabajo.findByIdAndUpdate(
-      id, 
-      datosActualizados, 
-      { returnDocument: 'after' } // <--- ACÁ ESTÁ EL CAMBIO PARA QUITAR LA ADVERTENCIA
-    );
-
-    res.json(trabajoActualizado);
+      trabajo:
+        trabajoActualizado
+    });
 
   } catch (error) {
-    console.error("Error al actualizar:", error);
-    res.status(500).json({ mensaje: 'Error al actualizar el trabajo' });
+
+    // ==========================================
+    // ERROR DE ZOD
+    // ==========================================
+
+    if (error.name === 'ZodError') {
+
+      return res.status(400).json({
+        mensaje:
+          'Los datos enviados no son válidos.',
+
+        errores:
+          error.issues.map(
+            (issue) => issue.message
+          )
+      });
+    }
+
+    console.error(
+      'ERROR AL ACTUALIZAR TRABAJO:',
+      error
+    );
+
+    return res.status(500).json({
+      mensaje:
+        'Error interno del servidor.'
+    });
   }
 };

@@ -1,185 +1,280 @@
-import { Usuario } from '../models/Usuario.js';
-import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
-// ==========================================
-// REGISTRAR USUARIO (Solo se usará una vez)
-// ==========================================
-export const registrarUsuario = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+import { Usuario } from '../models/Usuario.js';
 
-    const usuarioExistente = await Usuario.findOne({ email });
-    if (usuarioExistente) {
-      return res.status(400).json({ mensaje: 'Este email ya está en uso.' });
-    }
+const esProduccion = process.env.NODE_ENV === 'production';
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordEncriptada = await bcrypt.hash(password, salt);
+const opcionesCookieAuth = {
+  httpOnly: true,
+  secure: esProduccion,
+  sameSite: esProduccion ? 'none' : 'lax',
+  maxAge: 24 * 60 * 60 * 1000,
+  path: '/'
+};
 
-    const nuevoUsuario = new Usuario({
-      email,
-      password: passwordEncriptada
-    });
-
-    await nuevoUsuario.save();
-
-    res.status(201).json({ 
-      mensaje: 'Administrador registrado con éxito.',
-      usuario: { id: nuevoUsuario._id, email: nuevoUsuario.email } 
-    });
-
-  } catch (error) {
-    res.status(500).json({ mensaje: 'Error al registrar usuario.' });
-  }
+const opcionesClearCookie = {
+  httpOnly: true,
+  secure: esProduccion,
+  sameSite: esProduccion ? 'none' : 'lax',
+  path: '/'
 };
 
 // ==========================================
-// INICIAR SESIÓN (Generar el Token JWT)
+// 1. INICIAR SESIÓN
 // ==========================================
 export const loginUsuario = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const usuario = await Usuario.findOne({ email });
+    const emailNormalizado = email.trim().toLowerCase();
+
+    // password tiene select:false en Usuario.js,
+    // por eso solamente lo pedimos explícitamente al autenticar.
+    const usuario = await Usuario
+      .findOne({ email: emailNormalizado })
+      .select('+password');
+
     if (!usuario) {
-      return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
+      return res.status(401).json({
+        mensaje: 'Credenciales inválidas.'
+      });
     }
 
     const passwordValida = await usuario.comprobarPassword(password);
+
     if (!passwordValida) {
-      return res.status(400).json({ mensaje: 'Credenciales inválidas.' });
+      return res.status(401).json({
+        mensaje: 'Credenciales inválidas.'
+      });
     }
 
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET no está configurado.');
+    }
+
+    // Token CSRF independiente del JWT.
+    // Se devuelve al frontend, pero el JWT queda únicamente
+    // dentro de una cookie HttpOnly.
+    const csrfToken = crypto.randomBytes(32).toString('hex');
+
     const token = jwt.sign(
-      { id: usuario._id },
+      {
+        id: usuario._id,
+        csrf: csrfToken
+      },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      {
+        expiresIn: '1d',
+        algorithm: 'HS256'
+      }
     );
 
-    res.status(200).json({ 
+    res.cookie(
+      'auth_token',
+      token,
+      opcionesCookieAuth
+    );
+
+    return res.status(200).json({
       mensaje: 'Inicio de sesión exitoso.',
-      token 
+      csrfToken
     });
 
   } catch (error) {
-    console.log("💥 ERROR REAL EN LOGIN:", error); 
-    res.status(500).json({ 
-      mensaje: 'Error al iniciar sesión.',
-      detalle: error.message 
+    console.error('ERROR AL INICIAR SESIÓN:', error);
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
     });
   }
 };
 
 // ==========================================
-// 3. CAMBIAR CONTRASEÑA (Requiere Token)
+// 2. COMPROBAR SESIÓN
+// ==========================================
+// Permite que el frontend recupere el token CSRF
+// después de refrescar la página.
+// El JWT nunca se entrega al frontend.
+export const obtenerSesion = async (req, res) => {
+  return res.status(200).json({
+    autenticado: true,
+    csrfToken: req.usuario.csrf
+  });
+};
+
+// ==========================================
+// 3. CERRAR SESIÓN
+// ==========================================
+export const logoutUsuario = async (req, res) => {
+  res.clearCookie(
+    'auth_token',
+    opcionesClearCookie
+  );
+
+  return res.status(200).json({
+    mensaje: 'Sesión cerrada correctamente.'
+  });
+};
+
+// ==========================================
+// 4. CAMBIAR CONTRASEÑA
 // ==========================================
 export const cambiarPassword = async (req, res) => {
   try {
     const { passwordActual, passwordNueva } = req.body;
 
-    const usuario = await Usuario.findById(req.usuario.id);
+    const usuario = await Usuario
+      .findById(req.usuario.id)
+      .select('+password');
+
     if (!usuario) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+      return res.status(404).json({
+        mensaje: 'Usuario no encontrado.'
+      });
     }
 
-    const passwordCorrecta = await usuario.comprobarPassword(passwordActual);
+    const passwordCorrecta = await usuario.comprobarPassword(
+      passwordActual
+    );
+
     if (!passwordCorrecta) {
-      return res.status(400).json({ mensaje: 'La contraseña actual es incorrecta.' });
+      return res.status(400).json({
+        mensaje: 'La contraseña actual es incorrecta.'
+      });
     }
 
     if (passwordActual === passwordNueva) {
       return res.status(400).json({
-        mensaje: 'La nueva contraseña debe ser diferente a la contraseña actual.'
+        mensaje:
+          'La nueva contraseña debe ser diferente a la contraseña actual.'
       });
     }
 
     usuario.password = passwordNueva;
     await usuario.save();
 
-    res.status(200).json({ mensaje: 'Contraseña actualizada con éxito.' });
+    return res.status(200).json({
+      mensaje: 'Contraseña actualizada con éxito.'
+    });
 
   } catch (error) {
-    console.log("💥 ERROR AL CAMBIAR PASSWORD:", error);
-    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    console.error('ERROR AL CAMBIAR PASSWORD:', error);
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
   }
 };
 
 // ==========================================
-// 4. OBTENER PERFIL DEL ADMINISTRADOR
+// 5. OBTENER PERFIL DEL ADMINISTRADOR
 // ==========================================
 export const obtenerPerfil = async (req, res) => {
   try {
-    const usuario = await Usuario.findById(req.usuario.id).select('-password');
+    const usuario = await Usuario.findById(req.usuario.id);
+
     if (!usuario) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+      return res.status(404).json({
+        mensaje: 'Usuario no encontrado.'
+      });
     }
-    res.status(200).json(usuario);
+
+    return res.status(200).json(usuario);
+
   } catch (error) {
-    console.log("💥 ERROR AL OBTENER PERFIL:", error);
-    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    console.error('ERROR AL OBTENER PERFIL:', error);
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
   }
 };
 
 // ==========================================
-// 5. ACTUALIZAR FOTO DE PERFIL (Avatar)
+// 6. ACTUALIZAR FOTO DE PERFIL
 // ==========================================
 export const actualizarAvatar = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ mensaje: 'No se ha proporcionado ninguna imagen.' });
+      return res.status(400).json({
+        mensaje: 'No se ha proporcionado ninguna imagen.'
+      });
     }
 
     const usuario = await Usuario.findById(req.usuario.id);
+
     if (!usuario) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+      return res.status(404).json({
+        mensaje: 'Usuario no encontrado.'
+      });
     }
 
-    usuario.avatar = req.file.path; // O la URL que devuelva tu configuración de Multer/Cloudinary
+    usuario.avatar = req.file.path;
     await usuario.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       mensaje: 'Foto de perfil actualizada con éxito.',
       avatar: usuario.avatar
     });
 
   } catch (error) {
-    console.log("💥 ERROR AL ACTUALIZAR AVATAR:", error);
-    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    console.error('ERROR AL ACTUALIZAR AVATAR:', error);
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
   }
 };
 
 // ==========================================
-// 6. ACTUALIZAR INFO DE PERFIL (WhatsApp / Instagram)
+// 7. ACTUALIZAR WHATSAPP / INSTAGRAM
 // ==========================================
 export const actualizarInfoPerfil = async (req, res) => {
   try {
     const { whatsapp, instagram } = req.body;
+
     const usuario = await Usuario.findById(req.usuario.id);
 
     if (!usuario) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+      return res.status(404).json({
+        mensaje: 'Usuario no encontrado.'
+      });
     }
 
-    if (whatsapp !== undefined) usuario.whatsapp = whatsapp;
-    if (instagram !== undefined) usuario.instagram = instagram;
+    if (whatsapp !== undefined) {
+      usuario.whatsapp = whatsapp;
+    }
+
+    if (instagram !== undefined) {
+      usuario.instagram = instagram;
+    }
 
     await usuario.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       mensaje: 'Información de perfil actualizada con éxito.',
       whatsapp: usuario.whatsapp,
       instagram: usuario.instagram
     });
+
   } catch (error) {
-    console.log("💥 ERROR AL ACTUALIZAR INFO PERFIL:", error);
-    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    console.error('ERROR AL ACTUALIZAR INFO PERFIL:', error);
+
+    return res.status(500).json({
+      mensaje: 'Error interno del servidor.'
+    });
   }
 };
 
+// ==========================================
+// 8. PERFIL PÚBLICO
+// ==========================================
 export const obtenerPerfilPublico = async (req, res) => {
   try {
-    const usuario = await Usuario.findOne().select('instagram whatsapp');
+    const usuario = await Usuario
+      .findOne()
+      .select('instagram whatsapp');
 
     if (!usuario) {
       return res.status(404).json({
@@ -187,15 +282,15 @@ export const obtenerPerfilPublico = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       instagram: usuario.instagram || '',
       whatsapp: usuario.whatsapp || ''
     });
 
   } catch (error) {
-    console.log("💥 ERROR AL OBTENER PERFIL PÚBLICO:", error);
+    console.error('ERROR AL OBTENER PERFIL PÚBLICO:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       mensaje: 'Error interno del servidor.'
     });
   }

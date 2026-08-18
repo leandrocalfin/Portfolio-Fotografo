@@ -5,7 +5,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import axios from "axios";
+import api from "../api/api";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
@@ -20,7 +20,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const token = localStorage.getItem("token");
 
   const esPaginaInterna = location.pathname !== "/";
 
@@ -30,29 +29,34 @@ const Navbar = () => {
 
   useEffect(() => {
     const obtenerDatosAdmin = async () => {
-      if (!token) return;
-
       try {
-        const respuesta = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/usuarios/perfil`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        // Comprobamos la sesión en el backend.
+        // El JWT viaja en una cookie HttpOnly y JavaScript no puede leerlo.
+        const sesion = await api.get("/api/usuarios/sesion");
+
+        // Guardamos únicamente el token CSRF.
+        // NO es el JWT y no permite iniciar sesión por sí solo.
+        if (sesion.data?.csrfToken) {
+          sessionStorage.setItem(
+            "csrfToken",
+            sesion.data.csrfToken
+          );
+        }
+
+        const respuesta = await api.get(
+          "/api/usuarios/perfil"
         );
 
         setUsuario(respuesta.data);
       } catch (error) {
-        console.error(
-          "Error al obtener perfil en navbar:",
-          error
-        );
+        // Para un visitante público, no tener sesión es completamente normal.
+        setUsuario(null);
+        sessionStorage.removeItem("csrfToken");
       }
     };
 
     obtenerDatosAdmin();
-  }, [token]);
+  }, [location.pathname]);
 
   // ==========================================
   // CERRAR DROPDOWN AL HACER CLICK AFUERA
@@ -167,16 +171,24 @@ const Navbar = () => {
   // CERRAR SESIÓN
   // ==========================================
 
-  const manejarCerrarSesion = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("ultimaActividad");
+  const manejarCerrarSesion = async () => {
+    try {
+      await api.post("/api/usuarios/logout");
+    } catch (error) {
+      console.error(
+        "Error al cerrar sesión:",
+        error
+      );
+    } finally {
+      sessionStorage.removeItem("csrfToken");
+      localStorage.removeItem("ultimaActividad");
 
-    setDropdownAbierto(false);
-    cerrarMenu();
+      setUsuario(null);
+      setDropdownAbierto(false);
+      cerrarMenu();
 
-    navigate("/");
-
-    window.location.reload();
+      navigate("/");
+    }
   };
 
   // ==========================================
@@ -431,7 +443,7 @@ const Navbar = () => {
 
             {/* ================= ADMINISTRADOR ================= */}
 
-            {token ? (
+            {usuario ? (
               <div
                 className="relative flex justify-center"
                 ref={dropdownRef}

@@ -1,14 +1,52 @@
 import { Router } from 'express';
-import { obtenerServicios, crearServicio, actualizarServicio, eliminarServicio } from '../controllers/servicioController.js';
+
+import {
+  obtenerServicios,
+  crearServicio,
+  actualizarServicio,
+  eliminarServicio
+} from '../controllers/servicioController.js';
+
 import { verificarToken } from '../middlewares/authMiddleware.js';
-import { uploadFotos as upload } from '../config/cloudinary.js';
+import { verificarCsrf } from '../middlewares/csrfMiddleware.js';
+import { uploadFotos } from '../config/cloudinary.js';
 
 const router = Router();
 
-router.get('/', obtenerServicios);
-// Usamos upload.single('imagen') de forma estricta y segura
-router.post('/', verificarToken, upload.single('imagen'), crearServicio); 
-router.put('/:id', verificarToken, upload.single('imagen'), actualizarServicio);
-router.delete('/:id', verificarToken, eliminarServicio);
+// ==========================================
+// RUTAS PÚBLICAS
+// ==========================================
+
+router.get(
+  '/',
+  obtenerServicios
+);
+
+// ==========================================
+// RUTAS PRIVADAS
+// ==========================================
+
+router.post(
+  '/',
+  verificarToken,
+  verificarCsrf,
+  uploadFotos.single('imagen'),
+  crearServicio
+);
+
+router.put(
+  '/:id',
+  verificarToken,
+  verificarCsrf,
+  uploadFotos.single('imagen'),
+  actualizarServicio
+);
+
+router.delete(
+  '/:id',
+  verificarToken,
+  verificarCsrf,
+  eliminarServicio
+);
 
 export default router;
