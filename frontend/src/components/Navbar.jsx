@@ -5,7 +5,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import api from "../api/api";
+import axios from "axios";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
@@ -29,29 +29,36 @@ const Navbar = () => {
 
   useEffect(() => {
     const obtenerDatosAdmin = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setUsuario(null);
+        return;
+      }
+
       try {
-        // Comprobamos la sesión en el backend.
-        // El JWT viaja en una cookie HttpOnly y JavaScript no puede leerlo.
-        const sesion = await api.get("/api/usuarios/sesion");
-
-        // Guardamos únicamente el token CSRF.
-        // NO es el JWT y no permite iniciar sesión por sí solo.
-        if (sesion.data?.csrfToken) {
-          sessionStorage.setItem(
-            "csrfToken",
-            sesion.data.csrfToken
-          );
-        }
-
-        const respuesta = await api.get(
-          "/api/usuarios/perfil"
+        const respuesta = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/usuarios/perfil`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         setUsuario(respuesta.data);
       } catch (error) {
-        // Para un visitante público, no tener sesión es completamente normal.
+        console.error("Error al obtener datos del administrador:", error);
+
+        if (
+          error.response?.status === 401 ||
+          error.response?.status === 403
+        ) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("ultimaActividad");
+        }
+
         setUsuario(null);
-        sessionStorage.removeItem("csrfToken");
       }
     };
 
@@ -171,24 +178,15 @@ const Navbar = () => {
   // CERRAR SESIÓN
   // ==========================================
 
-  const manejarCerrarSesion = async () => {
-    try {
-      await api.post("/api/usuarios/logout");
-    } catch (error) {
-      console.error(
-        "Error al cerrar sesión:",
-        error
-      );
-    } finally {
-      sessionStorage.removeItem("csrfToken");
-      localStorage.removeItem("ultimaActividad");
+  const manejarCerrarSesion = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("ultimaActividad");
 
-      setUsuario(null);
-      setDropdownAbierto(false);
-      cerrarMenu();
+    setUsuario(null);
+    setDropdownAbierto(false);
+    cerrarMenu();
 
-      navigate("/");
-    }
+    navigate("/");
   };
 
   // ==========================================

@@ -6,6 +6,8 @@ import {
   useLocation,
 } from "react-router-dom";
 
+import axios from "axios";
+
 import Navbar from "./components/Navbar";
 import Inicio from "./pages/Inicio";
 import GaleriaCompleta from "./pages/GaleriaCompleta";
@@ -124,7 +126,9 @@ const ScrollManager = () => {
       cancelado = true;
 
       if (timeoutCorreccion) {
-        clearTimeout(timeoutCorreccion);
+        clearTimeout(
+          timeoutCorreccion
+        );
       }
     };
   }, [
@@ -134,6 +138,59 @@ const ScrollManager = () => {
 
   return null;
 };
+
+// ==========================================
+// VIGILANTE GLOBAL DE SESIÓN
+// ==========================================
+
+axios.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+
+  (error) => {
+    const status =
+      error.response?.status;
+
+    const token =
+      localStorage.getItem("token");
+
+    /*
+      Solo cerramos la sesión automáticamente
+      cuando realmente existe un token local.
+
+      De esta forma un visitante normal puede
+      navegar por el sitio sin ser enviado al login.
+    */
+    if (
+      token &&
+      (
+        status === 401 ||
+        status === 403
+      )
+    ) {
+      localStorage.removeItem(
+        "token"
+      );
+
+      localStorage.removeItem(
+        "ultimaActividad"
+      );
+
+      // Evitamos redirigir si ya estamos
+      // en la pantalla de login.
+      if (
+        window.location.pathname !==
+        "/login"
+      ) {
+        window.location.href =
+          "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 // ==========================================
 // APP

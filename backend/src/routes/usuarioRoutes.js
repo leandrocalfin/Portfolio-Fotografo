@@ -2,8 +2,6 @@ import express from 'express';
 
 import {
   loginUsuario,
-  logoutUsuario,
-  obtenerSesion,
   cambiarPassword,
   obtenerPerfil,
   actualizarAvatar,
@@ -13,7 +11,6 @@ import {
 
 import { loginLimiter } from '../middlewares/limiter.js';
 import { verificarToken } from '../middlewares/authMiddleware.js';
-import { verificarCsrf } from '../middlewares/csrfMiddleware.js';
 import { validarEsquema } from '../middlewares/validarZod.js';
 
 import {
@@ -42,51 +39,37 @@ router.get(
 );
 
 // ==========================================
-// SESIÓN
-// ==========================================
-
-router.get(
-  '/sesion',
-  verificarToken,
-  obtenerSesion
-);
-
-router.post(
-  '/logout',
-  verificarToken,
-  logoutUsuario
-);
-
-// ==========================================
 // RUTAS PRIVADAS
+// Requieren JWT Bearer válido
 // ==========================================
 
+// Obtener perfil del administrador
 router.get(
   '/perfil',
   verificarToken,
   obtenerPerfil
 );
 
+// Cambiar contraseña
 router.put(
   '/cambiar-password',
   verificarToken,
-  verificarCsrf,
   validarEsquema(cambiarPasswordSchema),
   cambiarPassword
 );
 
+// Actualizar avatar
 router.put(
   '/perfil/avatar',
   verificarToken,
-  verificarCsrf,
   uploadFotos.single('imagen'),
   actualizarAvatar
 );
 
+// Actualizar WhatsApp / Instagram
 router.put(
   '/perfil/info',
   verificarToken,
-  verificarCsrf,
   actualizarInfoPerfil
 );
 

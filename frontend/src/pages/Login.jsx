@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import api from '../api/api';
+import axios from 'axios';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -18,21 +17,21 @@ const Login = () => {
     setCargando(true);
 
     try {
-      const respuesta = await api.post(
-        '/api/usuarios/login',
+      const respuesta = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/usuarios/login`,
         {
           email,
           password
         }
       );
 
-      // El JWT NO se guarda en localStorage.
-      // El backend lo envía como cookie HttpOnly.
-      sessionStorage.setItem(
-        'csrfToken',
-        respuesta.data.csrfToken
+      // Guardamos el JWT para usarlo en las rutas privadas.
+      localStorage.setItem(
+        'token',
+        respuesta.data.token
       );
 
+      // Guardamos la última actividad para el cierre por inactividad.
       localStorage.setItem(
         'ultimaActividad',
         Date.now()

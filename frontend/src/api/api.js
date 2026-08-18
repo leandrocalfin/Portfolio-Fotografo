@@ -2,33 +2,29 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
 });
 
 // ==========================================
-// AGREGAR CSRF EN PETICIONES QUE MODIFICAN DATOS
+// AGREGAR JWT A LAS PETICIONES
 // ==========================================
 
-api.interceptors.request.use((config) => {
-  const metodo = config.method?.toLowerCase();
+api.interceptors.request.use(
+  (config) => {
+    const token =
+      localStorage.getItem("token");
 
-  const requiereCsrf = [
-    "post",
-    "put",
-    "patch",
-    "delete",
-  ].includes(metodo);
-
-  if (requiereCsrf) {
-    const csrfToken = sessionStorage.getItem("csrfToken");
-
-    if (csrfToken) {
-      config.headers["X-CSRF-Token"] = csrfToken;
+    if (token) {
+      config.headers.Authorization =
+        `Bearer ${token}`;
     }
-  }
 
-  return config;
-});
+    return config;
+  },
+
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // ==========================================
 // MANEJO GLOBAL DE SESIÓN EXPIRADA
@@ -38,25 +34,38 @@ api.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    const url = error.config?.url || "";
+    const status =
+      error.response?.status;
 
-    const esLogin = url.includes("/api/usuarios/login");
-    const esChequeoSesion = url.includes(
-      "/api/usuarios/sesion"
-    );
+    const url =
+      error.config?.url || "";
+
+    // Si el error viene del login,
+    // NO queremos redirigir automáticamente.
+    const esLogin =
+      url.includes(
+        "/api/usuarios/login"
+      );
 
     if (
-      error.response?.status === 401 &&
-      !esLogin &&
-      !esChequeoSesion
+      (status === 401 ||
+        status === 403) &&
+      !esLogin
     ) {
-      // Eliminamos únicamente información auxiliar.
-      // El JWT real está en una cookie HttpOnly.
-      sessionStorage.removeItem("csrfToken");
-      localStorage.removeItem("ultimaActividad");
+      localStorage.removeItem(
+        "token"
+      );
 
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      localStorage.removeItem(
+        "ultimaActividad"
+      );
+
+      if (
+        window.location.pathname !==
+        "/login"
+      ) {
+        window.location.href =
+          "/login";
       }
     }
 

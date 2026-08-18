@@ -2,6 +2,10 @@ import jwt from 'jsonwebtoken';
 
 export const verificarToken = (req, res, next) => {
   try {
+    // ==========================================
+    // 1. COMPROBAR JWT_SECRET
+    // ==========================================
+
     if (!process.env.JWT_SECRET) {
       console.error('JWT_SECRET no está configurado.');
 
@@ -11,19 +15,41 @@ export const verificarToken = (req, res, next) => {
     }
 
     // ==========================================
-    // 1. OBTENER JWT DESDE COOKIE HTTPONLY
+    // 2. OBTENER HEADER AUTHORIZATION
     // ==========================================
 
-    const token = req.cookies?.auth_token;
+    const authorization =
+      req.headers.authorization;
 
-    if (!token) {
+    if (!authorization) {
       return res.status(401).json({
         mensaje: 'Acceso no autorizado.'
       });
     }
 
+    /*
+      Formato esperado:
+
+      Authorization: Bearer eyJhbGciOi...
+    */
+
+    const partes =
+      authorization.split(' ');
+
+    if (
+      partes.length !== 2 ||
+      partes[0] !== 'Bearer' ||
+      !partes[1]
+    ) {
+      return res.status(401).json({
+        mensaje: 'Acceso no autorizado.'
+      });
+    }
+
+    const token = partes[1];
+
     // ==========================================
-    // 2. VERIFICAR JWT
+    // 3. VERIFICAR JWT
     // ==========================================
 
     const decodificado = jwt.verify(
@@ -35,20 +61,18 @@ export const verificarToken = (req, res, next) => {
     );
 
     // ==========================================
-    // 3. VALIDAR PAYLOAD
+    // 4. VALIDAR PAYLOAD
     // ==========================================
 
-    if (!decodificado.id || !decodificado.csrf) {
+    if (!decodificado.id) {
       return res.status(401).json({
         mensaje: 'Token no válido.'
       });
     }
 
-    // Solo dejamos disponibles los datos
-    // que realmente necesita la aplicación.
+    // Solo guardamos lo que necesitamos
     req.usuario = {
-      id: decodificado.id,
-      csrf: decodificado.csrf
+      id: decodificado.id
     };
 
     next();
