@@ -22,22 +22,28 @@ body,
 #root {
   width: 100%;
   max-width: 100%;
-  min-height: 100%;
   margin: 0;
   padding: 0;
 }
 
-html,
+html {
+  min-height: 100%;
+  background-color: #FBF9F5;
+}
+
+html.dark {
+  background-color: #0a0a0a;
+}
+
 body {
+  min-height: 100dvh;
+  background-color: inherit;
   overflow-x: hidden;
 }
 
-body {
-  min-width: 0;
-}
-
 #root {
-  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: inherit;
   overflow-x: hidden;
 }
 
@@ -47,8 +53,6 @@ body {
   box-sizing: border-box;
 }
 
-/* Evita que imágenes, inputs, etc.
-   puedan forzar un ancho mayor al viewport */
 img,
 video,
 canvas,
