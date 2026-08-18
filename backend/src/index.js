@@ -15,36 +15,48 @@ dotenv.config();
 const app = express();
 
 // ==========================================
-// 1. PROXY
+// 1. PROXY DE RENDER
 // ==========================================
+
 // Render funciona detrás de un proxy.
-// Esto permite que Express y express-rate-limit
-// interpreten correctamente la IP del cliente.
+// Esto también ayuda a express-rate-limit
+// a identificar correctamente la IP del cliente.
 app.set('trust proxy', 1);
 
 // ==========================================
 // 2. CABECERAS DE SEGURIDAD
 // ==========================================
+
 app.use(helmet());
 
 // ==========================================
 // 3. COOKIES
 // ==========================================
+
+// Permite leer las cookies en:
+// req.cookies
 app.use(cookieParser());
 
 // ==========================================
 // 4. CORS
 // ==========================================
+
+// Permitimos:
+// - frontend publicado en Vercel
+// - frontend local de Vite
 const origenesPermitidos = [
   process.env.FRONTEND_URL,
-  'http://localhost:5173'
+  'http://localhost:5173',
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Permite herramientas sin cabecera Origin,
-      // por ejemplo Postman o peticiones servidor-servidor.
+      /*
+        Algunas peticiones no traen Origin,
+        por ejemplo Postman o comunicación
+        servidor-servidor.
+      */
       if (!origin) {
         return callback(null, true);
       }
@@ -53,85 +65,129 @@ app.use(
         return callback(null, true);
       }
 
-      const error = new Error('Origen no permitido por CORS.');
+      const error = new Error(
+        'Origen no permitido por CORS.'
+      );
+
       error.status = 403;
+
       return callback(error);
     },
 
-    // Necesario para que el navegador envíe la cookie HttpOnly
-    // entre el frontend y el backend.
+    // MUY IMPORTANTE:
+    // permite enviar la cookie HttpOnly
+    // entre frontend y backend.
     credentials: true,
 
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    methods: [
+      'GET',
+      'POST',
+      'PUT',
+      'PATCH',
+      'DELETE',
+    ],
 
     allowedHeaders: [
       'Content-Type',
       'Authorization',
-      'X-CSRF-Token'
-    ]
+      'X-CSRF-Token',
+    ],
   })
 );
 
 // ==========================================
 // 5. JSON
 // ==========================================
+
+// Limitamos el tamaño del JSON recibido.
+// Las imágenes pasan por Multer, no por esto.
 app.use(
   express.json({
-    limit: '100kb'
+    limit: '100kb',
   })
 );
 
 // ==========================================
 // 6. BASE DE DATOS
 // ==========================================
+
 conectarDB();
 
 // ==========================================
 // 7. RUTAS
 // ==========================================
-app.use('/api/servicios', servicioRoutes);
-app.use('/api/trabajos', trabajoRoutes);
-app.use('/api/usuarios', usuarioRoutes);
+
+app.use(
+  '/api/servicios',
+  servicioRoutes
+);
+
+app.use(
+  '/api/trabajos',
+  trabajoRoutes
+);
+
+app.use(
+  '/api/usuarios',
+  usuarioRoutes
+);
 
 // ==========================================
 // 8. HEALTH CHECK
 // ==========================================
+
 app.get('/', (req, res) => {
-  res.status(200).json({
-    mensaje: 'Servidor funcionando correctamente.'
+  return res.status(200).json({
+    mensaje:
+      'Servidor funcionando correctamente.',
   });
 });
 
 // ==========================================
-// 9. RUTA NO ENCONTRADA
+// 9. RUTA INEXISTENTE
 // ==========================================
+
 app.use((req, res) => {
-  res.status(404).json({
-    mensaje: 'Ruta no encontrada.'
+  return res.status(404).json({
+    mensaje: 'Ruta no encontrada.',
   });
 });
 
 // ==========================================
 // 10. MANEJO GLOBAL DE ERRORES
 // ==========================================
+
 app.use((error, req, res, next) => {
-  console.error('ERROR DEL SERVIDOR:', error);
+  console.error(
+    'ERROR DEL SERVIDOR:',
+    error
+  );
 
-  const status = error.status || 500;
+  const status =
+    error.status || 500;
 
-  res.status(status).json({
+  if (status === 403) {
+    return res.status(403).json({
+      mensaje:
+        'Origen no permitido.',
+    });
+  }
+
+  return res.status(status).json({
     mensaje:
-      status === 403
-        ? 'Origen no permitido.'
-        : 'Error interno del servidor.'
+      'Error interno del servidor.',
   });
 });
 
 // ==========================================
 // 11. INICIAR SERVIDOR
 // ==========================================
-const PORT = process.env.PORT || 3000;
+
+const PORT =
+  process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Servidor iniciado en el puerto ${PORT}`);
+  console.log(
+    `Servidor iniciado en el puerto ${PORT}`
+  );
 });
