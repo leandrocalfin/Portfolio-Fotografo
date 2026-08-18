@@ -7,16 +7,80 @@
   --color-azul-logo: #1363DF;
   --color-crema-suave: #FBF9F5;
   --color-crema-azulado: #F4F6F9;
-  --color-celeste-custom: #78A4CB; /* 👈 Agregado aquí */
+  --color-celeste-custom: #78A4CB;
+
   --font-titulos: "Playfair Display", serif;
   --font-textos: "Inter", sans-serif;
 }
+
+/* ==========================================
+   RESET GLOBAL
+   ========================================== */
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  min-width: 0;
+}
+
+#root {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Evita que imágenes, inputs, etc.
+   puedan forzar un ancho mayor al viewport */
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+input,
+textarea,
+select,
+button {
+  max-width: 100%;
+}
+
+/* ==========================================
+   ANIMACIÓN EDITORIAL
+   ========================================== */
 
 .efecto-editorial {
   animation: ajustarEspaciado 1.8s ease-out forwards;
 }
 
 @keyframes ajustarEspaciado {
-  0% { letter-spacing: 0.4em; opacity: 0; transform: scale(1.05); }
-  100% { letter-spacing: normal; opacity: 1; transform: scale(1); }
+  0% {
+    letter-spacing: 0.4em;
+    opacity: 0;
+    transform: scale(1.05);
+  }
+
+  100% {
+    letter-spacing: normal;
+    opacity: 1;
+    transform: scale(1);
+  }
 }

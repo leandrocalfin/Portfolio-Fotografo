@@ -687,7 +687,7 @@ if (cargando) {
 }
 
 return (
-  <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 pt-20 pb-16 sm:pb-20 lg:pb-24 px-3 sm:px-5 lg:px-6 relative z-10 transition-colors duration-300">
+  <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-crema-suave dark:bg-neutral-950 pt-20 pb-16 sm:pb-20 lg:pb-24 px-3 sm:px-5 lg:px-6 relative z-10 transition-colors duration-300">
 
     {/* ================= MODAL ELIMINAR ÁLBUM ================= */}
     {idParaEliminar && (

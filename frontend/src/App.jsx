@@ -204,6 +204,9 @@ function App() {
       <div
         className="
           min-h-screen
+          w-full
+          max-w-full
+          overflow-x-hidden
           bg-white
           dark:bg-neutral-950
           text-neutral-900
