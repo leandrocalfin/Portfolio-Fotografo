@@ -170,6 +170,11 @@ const Dashboard = () => {
   const [nuevaFotoSobreMi, setNuevaFotoSobreMi] = useState(null);
   const [previewFotoSobreMi, setPreviewFotoSobreMi] = useState('');
 
+  // Formularios plegables: muestran un resumen
+  // y recien al tocar "Modificar" se despliegan.
+  const [editandoRedes, setEditandoRedes] = useState(false);
+  const [editandoSobreMi, setEditandoSobreMi] = useState(false);
+
   // Estados para cambiar contraseña
   const [passwordActual, setPasswordActual] = useState('');
   const [passwordNueva, setPasswordNueva] = useState('');
@@ -1177,63 +1182,97 @@ const Dashboard = () => {
               <div className="p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-6">Redes de Contacto</h3>
 
-                <form onSubmit={handleGuardarWhatsapp} className="flex flex-col gap-3 mb-8">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="text-[10px] uppercase font-bold text-neutral-500">WhatsApp</label>
-                      <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
-                        Actual: {perfil.whatsapp || 'No configurado'}
-                      </span>
+                {!editandoRedes ? (
+                  /*
+                    VISTA RESUMIDA:
+                    solo muestra lo guardado, sin campos editables.
+                  */
+                  <div className="flex flex-col gap-4">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-neutral-500">WhatsApp</span>
+                      <span className="text-xs text-neutral-700 dark:text-neutral-300 text-right break-all">{perfil.whatsapp || 'No configurado'}</span>
                     </div>
-                    <input
-                      type="text"
-                      value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
-                      placeholder="Ej: +5492966..."
-                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={estadoBotones.whatsapp.tipo === 'procesando'}
-                    className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
-                      estadoBotones.whatsapp,
-                      'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 cursor-pointer hover:opacity-90'
-                    )}`}
-                  >
-                    {estadoBotones.whatsapp.tipo === 'idle' ? 'Guardar WhatsApp' : estadoBotones.whatsapp.texto}
-                  </button>
-                </form>
-
-                <form onSubmit={handleGuardarInstagram} className="flex flex-col gap-3">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="text-[10px] uppercase font-bold text-neutral-500">Instagram</label>
-                      <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
-                        Actual: {perfil.instagram || 'No configurado'}
-                      </span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-neutral-500">Instagram</span>
+                      <span className="text-xs text-neutral-700 dark:text-neutral-300 text-right break-all">{perfil.instagram || 'No configurado'}</span>
                     </div>
-                    <input
-                      type="text"
-                      value={instagram}
-                      onChange={(e) => setInstagram(e.target.value)}
-                      placeholder="Ej: @tu_fotografia"
-                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditandoRedes(true)}
+                      className="w-full py-2.5 mt-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest border border-azul-logo text-azul-logo hover:bg-azul-logo hover:text-white transition-colors cursor-pointer"
+                    >
+                      Modificar Redes
+                    </button>
                   </div>
+                ) : (
+                  <>
+                    <form onSubmit={handleGuardarWhatsapp} className="flex flex-col gap-3 mb-8">
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] uppercase font-bold text-neutral-500">WhatsApp</label>
+                          <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
+                            Actual: {perfil.whatsapp || 'No configurado'}
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          value={whatsapp}
+                          onChange={(e) => setWhatsapp(e.target.value)}
+                          placeholder="Ej: +5492966..."
+                          className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                        />
+                      </div>
 
-                  <button
-                    type="submit"
-                    disabled={estadoBotones.instagram.tipo === 'procesando'}
-                    className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
-                      estadoBotones.instagram,
-                      'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 cursor-pointer hover:opacity-90'
-                    )}`}
-                  >
-                    {estadoBotones.instagram.tipo === 'idle' ? 'Guardar Instagram' : estadoBotones.instagram.texto}
-                  </button>
-                </form>
+                      <button
+                        type="submit"
+                        disabled={estadoBotones.whatsapp.tipo === 'procesando'}
+                        className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                          estadoBotones.whatsapp,
+                          'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 cursor-pointer hover:opacity-90'
+                        )}`}
+                      >
+                        {estadoBotones.whatsapp.tipo === 'idle' ? 'Guardar WhatsApp' : estadoBotones.whatsapp.texto}
+                      </button>
+                    </form>
+
+                    <form onSubmit={handleGuardarInstagram} className="flex flex-col gap-3">
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] uppercase font-bold text-neutral-500">Instagram</label>
+                          <span className="text-[10px] text-azul-logo font-medium truncate max-w-[140px]">
+                            Actual: {perfil.instagram || 'No configurado'}
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          value={instagram}
+                          onChange={(e) => setInstagram(e.target.value)}
+                          placeholder="Ej: @tu_fotografia"
+                          className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={estadoBotones.instagram.tipo === 'procesando'}
+                        className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                          estadoBotones.instagram,
+                          'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 cursor-pointer hover:opacity-90'
+                        )}`}
+                      >
+                        {estadoBotones.instagram.tipo === 'idle' ? 'Guardar Instagram' : estadoBotones.instagram.texto}
+                      </button>
+                    </form>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditandoRedes(false)}
+                      className="self-start mt-5 pt-3 border-t border-neutral-300/40 dark:border-neutral-800 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"
+                    >
+                      Cerrar edición
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* 3. SEGURIDAD */}
@@ -1345,11 +1384,44 @@ const Dashboard = () => {
               {/* 5. SECCIÓN SOBRE MÍ */}
               <div className="md:col-span-2 xl:col-span-2 p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-2">Sección Sobre Mí</h3>
-                <p className="text-[10px] text-neutral-500 leading-relaxed mb-4">
-                  Título, imagen y texto de la página Sobre Mí. Separá los párrafos con una línea en blanco.
-                </p>
 
-                <form onSubmit={handleCambiarFotoSobreMi} className="w-full flex flex-col gap-3 mb-6">
+                {!editandoSobreMi ? (
+                  /*
+                    VISTA RESUMIDA:
+                    estado del contenido sin mostrar los formularios.
+                  */
+                  <div className="flex flex-col gap-4 mt-4">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-neutral-500">Imagen</span>
+                      <span className="text-xs text-neutral-700 dark:text-neutral-300">{perfil.fotoSobreMi ? 'Personalizada ✓' : 'Por defecto'}</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-neutral-500">Título</span>
+                      <span className="text-xs text-neutral-700 dark:text-neutral-300 text-right truncate max-w-[60%]">{perfil.tituloSobreMi || 'Por defecto'}</span>
+                    </div>
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-[10px] uppercase font-bold text-neutral-500 shrink-0">Texto</span>
+                      <span className="text-xs text-neutral-700 dark:text-neutral-300 text-right">
+                        {perfil.textoSobreMi
+                          ? `${perfil.textoSobreMi.slice(0, 70)}${perfil.textoSobreMi.length > 70 ? '…' : ''}`
+                          : 'Por defecto'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditandoSobreMi(true)}
+                      className="w-full py-2.5 mt-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest border border-azul-logo text-azul-logo hover:bg-azul-logo hover:text-white transition-colors cursor-pointer"
+                    >
+                      Modificar Sobre Mí
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-[10px] text-neutral-500 leading-relaxed mb-4">
+                      Separá los párrafos con una línea en blanco. Dejar un campo vacío vuelve al contenido por defecto.
+                    </p>
+
+                    <form onSubmit={handleCambiarFotoSobreMi} className="w-full flex flex-col gap-3 mb-6">
                   <div className="w-full sm:max-w-xs aspect-video overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
                     {previewFotoSobreMi ? (
                       <img src={previewFotoSobreMi} alt="Preview Foto Sobre Mi" className="w-full h-full object-cover" />
@@ -1428,6 +1500,16 @@ const Dashboard = () => {
                     {estadoBotones.sobreMi.tipo === 'idle' ? 'Guardar Título y Texto' : estadoBotones.sobreMi.texto}
                   </button>
                 </form>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditandoSobreMi(false)}
+                      className="self-start mt-5 pt-3 border-t border-neutral-300/40 dark:border-neutral-800 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"
+                    >
+                      Cerrar edición
+                    </button>
+                  </>
+                )}
               </div>
 
             </div>
