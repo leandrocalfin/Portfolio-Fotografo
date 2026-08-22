@@ -228,8 +228,10 @@ const SobreMi = () => {
 
                 text-xs
                 leading-relaxed
+                text-left
 
                 sm:text-sm
+                sm:text-justify
 
                 md:text-[13px]
                 md:leading-6
