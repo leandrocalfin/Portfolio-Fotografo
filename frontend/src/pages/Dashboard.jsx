@@ -1350,23 +1350,9 @@ const Dashboard = () => {
                 </p>
 
                 <form onSubmit={handleCambiarFotoSobreMi} className="w-full flex flex-col gap-3 mb-6">
-                  <div className="flex justify-between items-center gap-2 flex-wrap">
-                    <label className="text-[10px] uppercase font-bold text-neutral-500">Imagen de la sección</label>
-                    {nuevaFotoSobreMi && (
-                      <button
-                        type="submit"
-                        disabled={estadoBotones.fotoSobreMi.tipo === 'procesando' || estadoBotones.fotoSobreMi.tipo === 'exito'}
-                        className={`py-1.5 px-4 text-[10px] font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
-                          estadoBotones.fotoSobreMi,
-                          'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
-                        )}`}
-                      >
-                        {estadoBotones.fotoSobreMi.tipo === 'idle' ? 'Guardar Imagen' : estadoBotones.fotoSobreMi.texto}
-                      </button>
-                    )}
-                  </div>
+                  <label className="text-[10px] uppercase font-bold text-neutral-500">Imagen de la sección</label>
 
-                  <div className="w-full aspect-[4/3] sm:aspect-video overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
+                  <div className="w-full sm:max-w-sm aspect-video overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
                     {previewFotoSobreMi ? (
                       <img src={previewFotoSobreMi} alt="Preview Foto Sobre Mi" className="w-full h-full object-cover" />
                     ) : perfil.fotoSobreMi ? (
@@ -1385,8 +1371,21 @@ const Dashboard = () => {
                         setPreviewFotoSobreMi(URL.createObjectURL(e.target.files[0]));
                       }
                     }}
-                    className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer"
+                    className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer sm:max-w-sm"
                   />
+
+                  {nuevaFotoSobreMi && (
+                    <button
+                      type="submit"
+                      disabled={estadoBotones.fotoSobreMi.tipo === 'procesando' || estadoBotones.fotoSobreMi.tipo === 'exito'}
+                      className={`self-start py-2.5 px-8 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                        estadoBotones.fotoSobreMi,
+                        'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
+                      )}`}
+                    >
+                      {estadoBotones.fotoSobreMi.tipo === 'idle' ? 'Guardar Imagen' : estadoBotones.fotoSobreMi.texto}
+                    </button>
+                  )}
                 </form>
 
                 <form onSubmit={handleGuardarSobreMi} className="flex flex-col gap-3">
