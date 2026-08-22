@@ -1350,8 +1350,6 @@ const Dashboard = () => {
                 </p>
 
                 <form onSubmit={handleCambiarFotoSobreMi} className="w-full flex flex-col gap-3 mb-6">
-                  <label className="text-[10px] uppercase font-bold text-neutral-500">Imagen de la sección</label>
-
                   <div className="w-full sm:max-w-xs aspect-video overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
                     {previewFotoSobreMi ? (
                       <img src={previewFotoSobreMi} alt="Preview Foto Sobre Mi" className="w-full h-full object-cover" />
