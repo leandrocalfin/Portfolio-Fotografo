@@ -95,28 +95,33 @@ const Dashboard = () => {
     };
   }, [navigate]);
 
+  // ==========================================
+  // SECCIÓN ACTIVA DEL PANEL
+  // ==========================================
+
+  /*
+    El Navbar pide una sección concreta vía
+    location.state.scrollTo ('admin-galeria',
+    'admin-servicios' o 'ajustes-perfil').
+
+    Con una sección elegida se muestra SOLO esa;
+    entrando directo a /dashboard (tras el login)
+    se muestran las tres, como siempre.
+  */
+  const [seccionActiva, setSeccionActiva] = useState(
+    location.state?.scrollTo || 'todas'
+  );
+
   useEffect(() => {
-    if (location.state?.scrollTo !== "ajustes-perfil") {
-      return;
+    const pedida =
+      location.state?.scrollTo;
+
+    if (pedida) {
+      setSeccionActiva(pedida);
     }
 
-    const timer = setTimeout(() => {
-      const seccion = document.getElementById("ajustes-perfil");
-
-      if (seccion) {
-        const y =
-          seccion.getBoundingClientRect().top +
-          window.scrollY -
-          120;
-
-        window.scrollTo({
-          top: y,
-          behavior: "smooth"
-        });
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
+    // Al cambiar de sección, arrancamos desde arriba.
+    window.scrollTo({ top: 0 });
   }, [location.state]);
 
   // ==========================================
@@ -877,6 +882,7 @@ const Dashboard = () => {
         </div>
 
         {/* ================= SECCIÓN GESTIÓN DE ÁLBUMES / TRABAJOS ================= */}
+        {(seccionActiva === 'todas' || seccionActiva === 'admin-galeria') && (
         <div id="admin-galeria">
           <div className="text-center mb-8">
             <h2 className="text-lg sm:text-xl lg:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
@@ -1015,8 +1021,10 @@ const Dashboard = () => {
             )}
           </div>
         </div>
+        )}
 
         {/* ================= SECCIÓN GESTIÓN DE SERVICIOS ================= */}
+        {(seccionActiva === 'todas' || seccionActiva === 'admin-servicios') && (
         <div id="admin-servicios" className="pt-12" >
           <div className="text-center mb-8">
             <h2 className="text-lg sm:text-xl lg:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
@@ -1118,10 +1126,12 @@ const Dashboard = () => {
             )}
           </div>
         </div>
+        )}
 
         {/* ========================================================== */}
         {/* SECCIÓN DE CONFIGURACIÓN DE PERFIL Y AJUSTES               */}
         {/* ========================================================== */}
+        {(seccionActiva === 'todas' || seccionActiva === 'ajustes-perfil') && (
         <div id="ajustes-perfil" className="pt-12 mt-8">
           <div className="text-center mb-8">
             <h2 className="text-lg sm:text-xl lg:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
@@ -1515,6 +1525,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+        )}
 
       </div>
     </div>
