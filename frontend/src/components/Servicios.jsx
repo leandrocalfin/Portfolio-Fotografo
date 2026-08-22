@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "../api/api";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow, Pagination } from "swiper/modules";
@@ -17,9 +17,7 @@ const Servicios = () => {
   useEffect(() => {
     const obtenerServiciosPublicos = async () => {
       try {
-        const respuesta = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/servicios`
-        );
+        const respuesta = await api.get('/api/servicios');
 
         const datos =
           respuesta.data.servicios || respuesta.data;

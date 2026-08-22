@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/api';
 import { Link } from 'react-router-dom';
 
 const Galeria = () => {
@@ -9,7 +9,7 @@ const Galeria = () => {
   useEffect(() => {
     const obtenerTrabajos = async () => {
       try {
-        const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/trabajos`);
+        const respuesta = await api.get('/api/trabajos');
 
         // Tomamos solo los últimos 3 trabajos y los invertimos 
         // Agarra del índice 0 al 3 (los 3 más recientes)

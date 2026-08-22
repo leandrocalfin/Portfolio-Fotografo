@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/api';
 
 const WhatsApp = () => {
   const [whatsappLink, setWhatsappLink] = useState('');
@@ -7,9 +7,7 @@ const WhatsApp = () => {
   useEffect(() => {
     const obtenerWhatsApp = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/usuarios/perfil-publico`
-        );
+        const res = await api.get('/api/usuarios/perfil-publico');
 
         if (res.data?.whatsapp) {
           const numero = res.data.whatsapp.trim();

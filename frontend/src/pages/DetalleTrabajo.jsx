@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/api';
 
 const DetalleTrabajo = () => {
   const { id } = useParams(); 
@@ -15,7 +15,7 @@ const DetalleTrabajo = () => {
     window.scrollTo(0, 0); 
     const obtenerDetalle = async () => {
       try {
-        const respuesta = await axios.get(`${import.meta.env.VITE_API_URL}/api/trabajos/${id}`);
+        const respuesta = await api.get(`/api/trabajos/${id}`);
         setTrabajo(respuesta.data);
         setCargando(false);
       } catch (error) {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../api/api';
 
 const UltimosTrabajos = () => {
   const [trabajos, setTrabajos] = useState([]);
@@ -9,8 +10,8 @@ const UltimosTrabajos = () => {
   useEffect(() => {
     const obtenerUltimosTrabajos = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trabajos?limite=3`);
-        const data = await response.json();
+        const response = await api.get('/api/trabajos?limite=3');
+        const data = response.data;
 
         setTrabajos(data.trabajos.slice(0, 3));
         setCargando(false);

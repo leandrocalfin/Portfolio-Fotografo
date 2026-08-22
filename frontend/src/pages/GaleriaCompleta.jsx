@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../api/api';
 
 const GaleriaCompleta = () => {
   const [trabajos, setTrabajos] = useState([]);
@@ -12,8 +13,8 @@ const GaleriaCompleta = () => {
     
     const obtenerTodosLosTrabajos = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trabajos`);
-        const data = await response.json();
+        const response = await api.get('/api/trabajos');
+        const data = response.data;
         
         setTrabajos(data.trabajos);
         setCargando(false);

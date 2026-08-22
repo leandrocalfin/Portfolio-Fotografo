@@ -29,7 +29,16 @@ const leerCookie = (nombre) => {
 };
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  /*
+    En desarrollo: http://localhost:3000 (.env local).
+    En producción: VACÍO -> las peticiones van a /api/...
+    del propio dominio y Vercel las redirige a Render
+    mediante el rewrite de vercel.json.
+
+    Así las cookies son SIEMPRE first-party y ningún
+    navegador las bloquea como terceros.
+  */
+  baseURL: import.meta.env.VITE_API_URL ?? "",
 
   // IMPRESCINDIBLE: sin esto axios no envía ni
   // recibe cookies entre dominios distintos.
