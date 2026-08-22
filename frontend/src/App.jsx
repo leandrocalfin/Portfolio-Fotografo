@@ -152,25 +152,26 @@ axios.interceptors.response.use(
     const status =
       error.response?.status;
 
-    const token =
-      localStorage.getItem("token");
-
     /*
       Solo cerramos la sesión automáticamente
-      cuando realmente existe un token local.
+      cuando hicimos login en este navegador.
 
-      De esta forma un visitante normal puede
-      navegar por el sitio sin ser enviado al login.
+      'sesionIniciada' es un indicador de UX,
+      no una credencial: la sesión real vive
+      en la cookie HttpOnly.
     */
+    const habiaSesion =
+      localStorage.getItem("sesionIniciada");
+
     if (
-      token &&
+      habiaSesion &&
       (
         status === 401 ||
         status === 403
       )
     ) {
       localStorage.removeItem(
-        "token"
+        "sesionIniciada"
       );
 
       localStorage.removeItem(

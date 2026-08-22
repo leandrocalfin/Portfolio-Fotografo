@@ -7,7 +7,10 @@ import {
   eliminarServicio
 } from '../controllers/servicioController.js';
 
-import { verificarToken } from '../middlewares/authMiddleware.js';
+import {
+  verificarToken,
+  verificarCsrf
+} from '../middlewares/authMiddleware.js';
 import { uploadFotos } from '../config/cloudinary.js';
 
 const router = Router();
@@ -23,13 +26,14 @@ router.get(
 
 // ==========================================
 // RUTAS PRIVADAS
-// Requieren JWT Bearer válido
+// Requieren cookie JWT válida + header CSRF
 // ==========================================
 
 // Crear servicio
 router.post(
   '/',
   verificarToken,
+  verificarCsrf,
   uploadFotos.single('imagen'),
   crearServicio
 );
@@ -38,6 +42,7 @@ router.post(
 router.put(
   '/:id',
   verificarToken,
+  verificarCsrf,
   uploadFotos.single('imagen'),
   actualizarServicio
 );
@@ -46,6 +51,7 @@ router.put(
 router.delete(
   '/:id',
   verificarToken,
+  verificarCsrf,
   eliminarServicio
 );
 

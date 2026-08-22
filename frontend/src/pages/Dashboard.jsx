@@ -20,7 +20,14 @@ const Dashboard = () => {
     }
 
     const cerrarSesionPorInactividad = () => {
-      localStorage.removeItem('token');
+      /*
+        Avisamos al backend para que borre las
+        cookies HttpOnly (JS no puede hacerlo).
+        Best-effort: si falla, cerramos igual.
+      */
+      api.post('/api/usuarios/logout').catch(() => {});
+
+      localStorage.removeItem('sesionIniciada');
       localStorage.removeItem('ultimaActividad');
 
       navigate('/login');
@@ -214,11 +221,14 @@ const Dashboard = () => {
   // ==========================================
   useEffect(() => {
     const iniciarDashboard = async () => {
-      // Buscamos el JWT guardado al iniciar sesión
-      const token = localStorage.getItem('token');
-
-      // Si no existe token, no permitimos entrar al Dashboard
-      if (!token) {
+      /*
+        La sesión real vive en la cookie HttpOnly.
+        El flag solo evita intentar cargar el panel
+        cuando ni siquiera hubo login en este navegador;
+        si la cookie ya expiró, las llamadas de abajo
+        devolverán 401 y el interceptor redirigirá.
+      */
+      if (!localStorage.getItem('sesionIniciada')) {
         navigate('/login');
         return;
       }

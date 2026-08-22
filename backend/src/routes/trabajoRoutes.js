@@ -7,7 +7,10 @@ import {
   actualizarTrabajo
 } from '../controllers/trabajoController.js';
 
-import { verificarToken } from '../middlewares/authMiddleware.js';
+import {
+  verificarToken,
+  verificarCsrf
+} from '../middlewares/authMiddleware.js';
 import { uploadFotos } from '../config/cloudinary.js';
 import { Trabajo } from '../models/Trabajo.js';
 
@@ -86,13 +89,14 @@ router.get(
 
 // ==========================================
 // RUTAS PRIVADAS
-// Requieren JWT Bearer válido
+// Requieren cookie JWT válida + header CSRF
 // ==========================================
 
 // Crear trabajo
 router.post(
   '/',
   verificarToken,
+  verificarCsrf,
   subirImagenesTrabajo,
   crearTrabajo
 );
@@ -101,6 +105,7 @@ router.post(
 router.put(
   '/:id',
   verificarToken,
+  verificarCsrf,
   subirImagenesTrabajo,
   actualizarTrabajo
 );
@@ -109,6 +114,7 @@ router.put(
 router.delete(
   '/:id',
   verificarToken,
+  verificarCsrf,
   eliminarTrabajo
 );
 

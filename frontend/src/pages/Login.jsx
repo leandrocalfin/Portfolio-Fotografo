@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,18 +17,20 @@ const Login = () => {
     setCargando(true);
 
     try {
-      const respuesta = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/usuarios/login`,
-        {
-          email,
-          password
-        }
-      );
+      /*
+        El JWT llega como cookie HttpOnly que el
+        navegador guarda solo. Acá NO se guarda
+        ningún token: solo marcamos el estado de UX.
+      */
+      await api.post('/api/usuarios/login', {
+        email,
+        password
+      });
 
-      // Guardamos el JWT para usarlo en las rutas privadas.
+      // Indicador de UX (no es una credencial).
       localStorage.setItem(
-        'token',
-        respuesta.data.token
+        'sesionIniciada',
+        '1'
       );
 
       // Guardamos la última actividad para el cierre por inactividad.

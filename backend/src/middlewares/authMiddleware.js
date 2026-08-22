@@ -1,9 +1,17 @@
+import crypto from 'node:crypto';
+
 import jwt from 'jsonwebtoken';
 
-export const verificarToken = (req, res, next) => {
+import { Usuario } from '../models/Usuario.js';
+
+// ==========================================
+// 1. VERIFICAR EL JWT (VIA COOKIE HttpOnly)
+// ==========================================
+
+export const verificarToken = async (req, res, next) => {
   try {
     // ==========================================
-    // 1. COMPROBAR JWT_SECRET
+    // 1.1 COMPROBAR JWT_SECRET
     // ==========================================
 
     if (!process.env.JWT_SECRET) {
@@ -15,41 +23,25 @@ export const verificarToken = (req, res, next) => {
     }
 
     // ==========================================
-    // 2. OBTENER HEADER AUTHORIZATION
+    // 1.2 OBTENER LA COOKIE
     // ==========================================
-
-    const authorization =
-      req.headers.authorization;
-
-    if (!authorization) {
-      return res.status(401).json({
-        mensaje: 'Acceso no autorizado.'
-      });
-    }
 
     /*
-      Formato esperado:
-
-      Authorization: Bearer eyJhbGciOi...
+      El JWT ya no viaja en el header Authorization.
+      Ahora vive en una cookie HttpOnly que el navegador
+      adjunta automáticamente y que JavaScript NO puede leer.
     */
 
-    const partes =
-      authorization.split(' ');
+    const token = req.cookies?.token;
 
-    if (
-      partes.length !== 2 ||
-      partes[0] !== 'Bearer' ||
-      !partes[1]
-    ) {
+    if (!token) {
       return res.status(401).json({
         mensaje: 'Acceso no autorizado.'
       });
     }
 
-    const token = partes[1];
-
     // ==========================================
-    // 3. VERIFICAR JWT
+    // 1.3 VERIFICAR EL JWT
     // ==========================================
 
     const decodificado = jwt.verify(
@@ -61,7 +53,7 @@ export const verificarToken = (req, res, next) => {
     );
 
     // ==========================================
-    // 4. VALIDAR PAYLOAD
+    // 1.4 VALIDAR PAYLOAD
     // ==========================================
 
     if (!decodificado.id) {
@@ -70,7 +62,45 @@ export const verificarToken = (req, res, next) => {
       });
     }
 
-    // Solo guardamos lo que necesitamos
+    // ==========================================
+    // 1.5 VERIFICAR tokenVersion (REVOCACIÓN)
+    // ==========================================
+
+    /*
+      La firma matemática solo prueba que NOSOTROS
+      emitimos el token y que no fue alterado. No
+      prueba que siga vigente.
+
+      Comparamos la versión embebida contra la
+      versión actual del usuario en la BD: si alguien
+      cambió la contraseña o cerró sesión, la versión
+      se incrementó y este token queda huérfano.
+
+      Costo: una consulta indexada por request.
+      Beneficio: poder de revocación inmediata.
+    */
+
+    const usuarioActual =
+      await Usuario.findById(
+        decodificado.id
+      ).select('tokenVersion');
+
+    if (!usuarioActual) {
+      return res.status(401).json({
+        mensaje: 'Token no válido.'
+      });
+    }
+
+    if (
+      decodificado.tokenVersion !==
+      usuarioActual.tokenVersion
+    ) {
+      return res.status(401).json({
+        mensaje:
+          'La sesión ya no es válida. Iniciá sesión nuevamente.'
+      });
+    }
+
     req.usuario = {
       id: decodificado.id
     };
@@ -82,4 +112,53 @@ export const verificarToken = (req, res, next) => {
       mensaje: 'Token no válido o expirado.'
     });
   }
+};
+
+// ==========================================
+// 2. VERIFICAR TOKEN CSRF (DOUBLE SUBMIT)
+// ==========================================
+
+/*
+  Patrón double-submit cookie:
+
+  - El backend deja DOS cookies en el login:
+      token       (HttpOnly, invisible para JS)
+      csrf_token  (legible por JS, valor aleatorio)
+
+  - El frontend debe reenviar csrf_token en el
+    header X-CSRF-Token.
+
+  - Si alguien desde otro sitio logra que el navegador
+    envíe peticiones con la cookie (CSRF), NO puede leer
+    la cookie para copiar su valor al header, así que
+    la comparación falla.
+
+  La comparación usa timingSafeEqual: tarda siempre lo
+  mismo sin importar dónde difieren los valores, lo que
+  impide ataques de medición de tiempo (timing attacks).
+*/
+
+export const verificarCsrf = (req, res, next) => {
+  const tokenHeader =
+    req.headers['x-csrf-token'];
+
+  const tokenCookie =
+    req.cookies?.csrf_token;
+
+  if (
+    !tokenHeader ||
+    !tokenCookie ||
+    tokenHeader.length !== tokenCookie.length ||
+    !crypto.timingSafeEqual(
+      Buffer.from(tokenHeader),
+      Buffer.from(tokenCookie)
+    )
+  ) {
+    return res.status(403).json({
+      mensaje:
+        'Petición rechazada: verificación CSRF fallida.'
+    });
+  }
+
+  next();
 };

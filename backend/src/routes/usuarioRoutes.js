@@ -2,6 +2,7 @@ import express from 'express';
 
 import {
   loginUsuario,
+  cerrarSesion,
   cambiarPassword,
   obtenerPerfil,
   actualizarAvatar,
@@ -9,8 +10,14 @@ import {
   obtenerPerfilPublico
 } from '../controllers/usuarioController.js';
 
-import { loginLimiter } from '../middlewares/limiter.js';
-import { verificarToken } from '../middlewares/authMiddleware.js';
+import {
+  loginLimiter
+} from '../middlewares/limiter.js';
+
+import {
+  verificarToken,
+  verificarCsrf
+} from '../middlewares/authMiddleware.js';
 import { validarEsquema } from '../middlewares/validarZod.js';
 
 import {
@@ -40,8 +47,14 @@ router.get(
 
 // ==========================================
 // RUTAS PRIVADAS
-// Requieren JWT Bearer válido
+// Requieren cookie JWT válida + header CSRF
 // ==========================================
+
+// Cerrar sesión (borra las cookies)
+router.post(
+  '/logout',
+  cerrarSesion
+);
 
 // Obtener perfil del administrador
 router.get(
@@ -54,6 +67,7 @@ router.get(
 router.put(
   '/cambiar-password',
   verificarToken,
+  verificarCsrf,
   validarEsquema(cambiarPasswordSchema),
   cambiarPassword
 );
@@ -62,6 +76,7 @@ router.put(
 router.put(
   '/perfil/avatar',
   verificarToken,
+  verificarCsrf,
   uploadFotos.single('imagen'),
   actualizarAvatar
 );
@@ -70,6 +85,7 @@ router.put(
 router.put(
   '/perfil/info',
   verificarToken,
+  verificarCsrf,
   actualizarInfoPerfil
 );
 

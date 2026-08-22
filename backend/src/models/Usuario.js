@@ -30,6 +30,23 @@ const usuarioSchema = new mongoose.Schema({
   instagram: {
     type: String,
     default: ''
+  },
+
+  /*
+    Versión de los tokens emitidos para este usuario.
+
+    Cada JWT lleva copia de este número en su payload.
+    Al incrementarlo (cambio de contraseña, logout),
+    TODOS los JWT emitidos anteriormente quedan
+    inválidos al instante, aunque su firma sea válida
+    y no hayan expirado.
+
+    Es lo que le da al JWT un botón de "revocar".
+  */
+
+  tokenVersion: {
+    type: Number,
+    default: 0
   }
 
 });

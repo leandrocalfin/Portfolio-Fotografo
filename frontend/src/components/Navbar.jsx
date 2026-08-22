@@ -5,7 +5,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import axios from "axios";
+import api from "../api/api";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
@@ -29,21 +29,21 @@ const Navbar = () => {
 
   useEffect(() => {
     const obtenerDatosAdmin = async () => {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
+      /*
+        Solo intentamos traer el perfil si hicimos
+        login en esta sesión de navegador. La sesión
+        real vive en la cookie HttpOnly: si expiró,
+        la llamada fallará con 401 y el interceptor
+        global limpiará el estado.
+      */
+      if (!localStorage.getItem("sesionIniciada")) {
         setUsuario(null);
         return;
       }
 
       try {
-        const respuesta = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/usuarios/perfil`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const respuesta = await api.get(
+          "/api/usuarios/perfil"
         );
 
         setUsuario(respuesta.data);
@@ -54,7 +54,7 @@ const Navbar = () => {
           error.response?.status === 401 ||
           error.response?.status === 403
         ) {
-          localStorage.removeItem("token");
+          localStorage.removeItem("sesionIniciada");
           localStorage.removeItem("ultimaActividad");
         }
 
@@ -178,8 +178,18 @@ const Navbar = () => {
   // CERRAR SESIÓN
   // ==========================================
 
-  const manejarCerrarSesion = () => {
-    localStorage.removeItem("token");
+  const manejarCerrarSesion = async () => {
+    /*
+      La cookie HttpOnly no se puede borrar desde JS:
+      pedimos al backend que la elimine.
+    */
+    try {
+      await api.post("/api/usuarios/logout");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+
+    localStorage.removeItem("sesionIniciada");
     localStorage.removeItem("ultimaActividad");
 
     setUsuario(null);
