@@ -6,7 +6,9 @@ import {
   cambiarPassword,
   obtenerPerfil,
   actualizarAvatar,
+  actualizarPortada,
   actualizarInfoPerfil,
+  actualizarTextoSobreMi,
   obtenerPerfilPublico
 } from '../controllers/usuarioController.js';
 
@@ -22,7 +24,8 @@ import { validarEsquema } from '../middlewares/validarZod.js';
 
 import {
   loginSchema,
-  cambiarPasswordSchema
+  cambiarPasswordSchema,
+  sobreMiSchema
 } from '../schemas/usuarioSchema.js';
 
 import { uploadFotos } from '../config/cloudinary.js';
@@ -87,6 +90,24 @@ router.put(
   verificarToken,
   verificarCsrf,
   actualizarInfoPerfil
+);
+
+// Actualizar foto de portada (hero de Inicio)
+router.put(
+  '/perfil/portada',
+  verificarToken,
+  verificarCsrf,
+  uploadFotos.single('imagen'),
+  actualizarPortada
+);
+
+// Actualizar texto de Sobre Mí
+router.put(
+  '/perfil/sobre-mi',
+  verificarToken,
+  verificarCsrf,
+  validarEsquema(sobreMiSchema),
+  actualizarTextoSobreMi
 );
 
 export default router;

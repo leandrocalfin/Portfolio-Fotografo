@@ -1,12 +1,33 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
+import api from "../api/api";
 import UltimosTrabajos from "../components/UltimosTrabajos";
 import SobreMi from "./SobreMi";
 import Servicios from "../components/Servicios";
 import Contacto from "../components/Contacto";
 
 const Inicio = () => {
+  // ==========================================
+  // PORTADA PERSONALIZADA
+  // ==========================================
+
+  const [portada, setPortada] = useState("");
+
+  useEffect(() => {
+    const cargarPortada = async () => {
+      try {
+        // Si falla, simplemente se usa la imagen por defecto.
+        const respuesta = await api.get("/api/usuarios/perfil-publico");
+        setPortada(respuesta.data.fotoPortada || "");
+      } catch {
+        setPortada("");
+      }
+    };
+
+    cargarPortada();
+  }, []);
+
   // ==========================================
   // SPLASH SCREEN
   // ==========================================
@@ -149,7 +170,7 @@ const Inicio = () => {
             "
             style={{
               backgroundImage:
-                "url('/fondo.png')",
+                `url('${portada || "/fondo.png"}')`,
             }}
           >
             {/* OSCURECIMIENTO */}

@@ -63,7 +63,39 @@ export const cambiarPasswordSchema = z.object({
     )
     .regex(
       /[^A-Za-z0-9]/,
-      'La nueva contraseña debe incluir al menos un símbolo.'
+      'La nueva contraseA�a debe incluir al menos un sA­mbolo.'
+    )
+
+});
+
+
+// ==========================================
+// TEXTO SOBRE MI
+// ==========================================
+
+/*
+  El texto se guarda tal cual, con sus saltos
+  de linea. El frontend separa parrafos por
+  lineas vacias. Limitamos a 5000 caracteres
+  (unas ~2 paginas) para que nadie pueda
+  guardar megas de texto en un solo campo.
+*/
+
+export const sobreMiSchema = z.object({
+
+  textoSobreMi: z
+    .string({
+      required_error:
+        'El texto es obligatorio.'
+    })
+    .trim()
+    .min(
+      1,
+      'El texto no puede estar vacio.'
+    )
+    .max(
+      5000,
+      'El texto no puede superar los 5000 caracteres.'
     )
 
 });

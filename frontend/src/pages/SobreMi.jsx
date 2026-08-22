@@ -1,4 +1,49 @@
+import { useState, useEffect } from "react";
+
+import api from "../api/api";
+
+/*
+  Texto que se muestra mientras el fotógrafo
+  no haya guardado uno propio en el Dashboard.
+*/
+const TEXTOS_POR_DEFECTO = [
+  "Soy un fotógrafo apasionado por congelar momentos únicos y convertirlos en recuerdos que perduran para siempre. Mi enfoque se centra en la naturalidad, el manejo de la luz y, sobre todo, en las emociones reales.",
+  "Cada sesión es una oportunidad para contar una historia auténtica, creando un espacio cómodo donde tu verdadera esencia pueda brillar frente a la cámara."
+];
+
 const SobreMi = () => {
+  // Texto editable desde el Dashboard.
+  // Vacío -> se usan los textos por defecto.
+  const [textoSobreMi, setTextoSobreMi] = useState("");
+
+  useEffect(() => {
+    const cargarTexto = async () => {
+      try {
+        const respuesta = await api.get(
+          "/api/usuarios/perfil-publico"
+        );
+        setTextoSobreMi(respuesta.data.textoSobreMi || "");
+      } catch {
+        // Si falla, quedan los textos por defecto.
+        setTextoSobreMi("");
+      }
+    };
+
+    cargarTexto();
+  }, []);
+
+  /*
+    Los párrafos se separan por líneas vacías
+    (doble salto de línea), igual que en el
+    textarea del Dashboard.
+  */
+  const parrafos = textoSobreMi.trim()
+    ? textoSobreMi
+        .split(/\n\s*\n/)
+        .map((parrafo) => parrafo.trim())
+        .filter(Boolean)
+    : TEXTOS_POR_DEFECTO;
+
   return (
     <section
       id="sobre-mi"
@@ -172,60 +217,36 @@ const SobreMi = () => {
             de cada historia
           </h3>
 
-          <p
-            className="
-              text-neutral-700
-              dark:text-neutral-300
-              font-textos
-              transition-colors
+          {parrafos.map((parrafo, indice) => (
+            <p
+              key={indice}
+              className={`
+                text-neutral-700
+                dark:text-neutral-300
+                font-textos
+                transition-colors
 
-              text-xs
-              leading-relaxed
-              mb-4
+                text-xs
+                leading-relaxed
 
-              sm:text-sm
+                sm:text-sm
 
-              md:text-[13px]
-              md:leading-6
-              md:mb-4
+                md:text-[13px]
+                md:leading-6
 
-              lg:text-base
-              lg:leading-relaxed
-              lg:mb-6
-            "
-          >
-            Soy un fotógrafo apasionado por congelar momentos únicos y
-            convertirlos en recuerdos que perduran para siempre. Mi enfoque se
-            centra en la naturalidad, el manejo de la luz y, sobre todo, en las
-            emociones reales.
-          </p>
+                lg:text-base
+                lg:leading-relaxed
 
-          <p
-            className="
-              text-neutral-700
-              dark:text-neutral-300
-              font-textos
-              transition-colors
-
-              text-xs
-              leading-relaxed
-              mb-6
-
-              sm:text-sm
-
-              md:text-[13px]
-              md:leading-6
-              md:mb-6
-
-              lg:text-base
-              lg:leading-relaxed
-              lg:mb-10
-            "
-          >
-            Cada sesión es una oportunidad para contar una historia auténtica,
-            creando un espacio cómodo donde tu verdadera esencia pueda brillar
-            frente a la cámara.
-          </p>
+                ${
+                  indice === parrafos.length - 1
+                    ? "mb-6 md:mb-6 lg:mb-10"
+                    : "mb-4 md:mb-4 lg:mb-6"
+                }
+              `}
+            >
+              {parrafo}
+            </p>
+          ))}
 
           <div>
             <a

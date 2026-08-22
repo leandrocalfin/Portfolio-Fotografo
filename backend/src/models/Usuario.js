@@ -33,6 +33,30 @@ const usuarioSchema = new mongoose.Schema({
   },
 
   /*
+    Imagen del hero de la página de Inicio.
+    Se guarda la URL de Cloudinary tras subirla.
+    Si queda vacía, el frontend usa su imagen
+    por defecto (/fondo.png).
+  */
+  fotoPortada: {
+    type: String,
+    default: ''
+  },
+
+  /*
+    Texto libre de la sección Sobre Mí.
+    El frontend separa los párrafos por líneas
+    vacías (doble salto de línea) para mostrarlo
+    con el mismo formato que el diseño original.
+    Vacío -> muestra un texto por defecto.
+  */
+  textoSobreMi: {
+    type: String,
+    default: '',
+    maxlength: 5000
+  },
+
+  /*
     Versión de los tokens emitidos para este usuario.
 
     Cada JWT lleva copia de este número en su payload.
