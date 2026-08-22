@@ -11,6 +11,10 @@ import {
   verificarToken,
   verificarCsrf
 } from '../middlewares/authMiddleware.js';
+
+import {
+  validarObjectId
+} from '../middlewares/validarObjectId.js';
 import { uploadFotos } from '../config/cloudinary.js';
 
 const router = Router();
@@ -43,6 +47,7 @@ router.put(
   '/:id',
   verificarToken,
   verificarCsrf,
+  validarObjectId,
   uploadFotos.single('imagen'),
   actualizarServicio
 );
@@ -52,6 +57,7 @@ router.delete(
   '/:id',
   verificarToken,
   verificarCsrf,
+  validarObjectId,
   eliminarServicio
 );
 

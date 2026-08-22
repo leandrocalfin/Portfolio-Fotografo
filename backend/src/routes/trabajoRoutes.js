@@ -11,6 +11,10 @@ import {
   verificarToken,
   verificarCsrf
 } from '../middlewares/authMiddleware.js';
+
+import {
+  validarObjectId
+} from '../middlewares/validarObjectId.js';
 import { uploadFotos } from '../config/cloudinary.js';
 import { Trabajo } from '../models/Trabajo.js';
 
@@ -55,6 +59,7 @@ router.get(
 // Obtener un trabajo por ID
 router.get(
   '/:id',
+  validarObjectId,
   async (req, res) => {
     try {
       const trabajo =
@@ -106,6 +111,7 @@ router.put(
   '/:id',
   verificarToken,
   verificarCsrf,
+  validarObjectId,
   subirImagenesTrabajo,
   actualizarTrabajo
 );
@@ -115,6 +121,7 @@ router.delete(
   '/:id',
   verificarToken,
   verificarCsrf,
+  validarObjectId,
   eliminarTrabajo
 );
 

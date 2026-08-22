@@ -10,6 +10,8 @@ import trabajoRoutes from './routes/trabajoRoutes.js';
 import usuarioRoutes from './routes/usuarioRoutes.js';
 import servicioRoutes from './routes/servicioRoutes.js';
 
+import { limiterGlobal } from './middlewares/limiter.js';
+
 dotenv.config();
 
 const app = express();
@@ -96,7 +98,18 @@ app.use(
 );
 
 // ==========================================
-// 5. JSON
+// 5. RATE LIMITER GLOBAL
+// ==========================================
+
+/*
+  Aplica a TODAS las rutas. El login además
+  tiene su propio limiter estricto dentro
+  de usuarioRoutes (defensa en capas).
+*/
+app.use(limiterGlobal);
+
+// ==========================================
+// 6. JSON
 // ==========================================
 
 // Limitamos el tamaño del JSON recibido.
@@ -108,13 +121,13 @@ app.use(
 );
 
 // ==========================================
-// 6. BASE DE DATOS
+// 7. BASE DE DATOS
 // ==========================================
 
 conectarDB();
 
 // ==========================================
-// 7. RUTAS
+// 8. RUTAS
 // ==========================================
 
 app.use(
@@ -133,7 +146,7 @@ app.use(
 );
 
 // ==========================================
-// 8. HEALTH CHECK
+// 9. HEALTH CHECK
 // ==========================================
 
 app.get('/', (req, res) => {
@@ -144,7 +157,7 @@ app.get('/', (req, res) => {
 });
 
 // ==========================================
-// 9. RUTA INEXISTENTE
+// 10. RUTA INEXISTENTE
 // ==========================================
 
 app.use((req, res) => {
@@ -154,7 +167,7 @@ app.use((req, res) => {
 });
 
 // ==========================================
-// 10. MANEJO GLOBAL DE ERRORES
+// 11. MANEJO GLOBAL DE ERRORES
 // ==========================================
 
 app.use((error, req, res, next) => {
@@ -180,7 +193,7 @@ app.use((error, req, res, next) => {
 });
 
 // ==========================================
-// 11. INICIAR SERVIDOR
+// 12. INICIAR SERVIDOR
 // ==========================================
 
 const PORT =
