@@ -57,6 +57,25 @@ const usuarioSchema = new mongoose.Schema({
   },
 
   /*
+    Titulo de la seccion Sobre Mi.
+    Vacio -> el frontend muestra su titulo por defecto.
+  */
+  tituloSobreMi: {
+    type: String,
+    default: '',
+    maxlength: 120
+  },
+
+  /*
+    Imagen de la seccion Sobre Mi (URL de Cloudinary).
+    Vacia -> el frontend usa su imagen por defecto.
+  */
+  fotoSobreMi: {
+    type: String,
+    default: ''
+  },
+
+  /*
     Versión de los tokens emitidos para este usuario.
 
     Cada JWT lleva copia de este número en su payload.

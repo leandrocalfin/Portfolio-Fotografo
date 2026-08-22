@@ -11,25 +11,35 @@ const TEXTOS_POR_DEFECTO = [
   "Cada sesión es una oportunidad para contar una historia auténtica, creando un espacio cómodo donde tu verdadera esencia pueda brillar frente a la cámara."
 ];
 
+const TITULO_POR_DEFECTO = ["Capturando la esencia", "de cada historia"];
+
+const IMAGEN_POR_DEFECTO = "/sobre-mi.png";
+
 const SobreMi = () => {
-  // Texto editable desde el Dashboard.
-  // Vacío -> se usan los textos por defecto.
+  // Contenido editable desde el Dashboard.
+  // Vacío -> se usa el contenido por defecto.
+  const [tituloSobreMi, setTituloSobreMi] = useState("");
   const [textoSobreMi, setTextoSobreMi] = useState("");
+  const [fotoSobreMi, setFotoSobreMi] = useState("");
 
   useEffect(() => {
-    const cargarTexto = async () => {
+    const cargarContenido = async () => {
       try {
         const respuesta = await api.get(
           "/api/usuarios/perfil-publico"
         );
+        setTituloSobreMi(respuesta.data.tituloSobreMi || "");
         setTextoSobreMi(respuesta.data.textoSobreMi || "");
+        setFotoSobreMi(respuesta.data.fotoSobreMi || "");
       } catch {
-        // Si falla, quedan los textos por defecto.
+        // Si falla, quedan los contenidos por defecto.
+        setTituloSobreMi("");
         setTextoSobreMi("");
+        setFotoSobreMi("");
       }
     };
 
-    cargarTexto();
+    cargarContenido();
   }, []);
 
   /*
@@ -147,7 +157,8 @@ const SobreMi = () => {
               group-hover:scale-105
             "
             style={{
-              backgroundImage: "url('/sobre-mi.png')",
+              backgroundImage:
+                `url('${fotoSobreMi || IMAGEN_POR_DEFECTO}')`,
             }}
           />
 
@@ -212,9 +223,14 @@ const SobreMi = () => {
               lg:mb-6
             "
           >
-            Capturando la esencia
-            <br />
-            de cada historia
+            {tituloSobreMi.trim()
+              ? tituloSobreMi
+              : TITULO_POR_DEFECTO.map((linea, indice) => (
+                  <span key={indice}>
+                    {linea}
+                    {indice < TITULO_POR_DEFECTO.length - 1 && <br />}
+                  </span>
+                ))}
           </h3>
 
           {parrafos.map((parrafo, indice) => (

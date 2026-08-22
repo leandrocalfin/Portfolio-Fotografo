@@ -9,6 +9,7 @@ import {
   actualizarPortada,
   actualizarInfoPerfil,
   actualizarTextoSobreMi,
+  actualizarFotoSobreMi,
   obtenerPerfilPublico
 } from '../controllers/usuarioController.js';
 
@@ -108,6 +109,15 @@ router.put(
   verificarCsrf,
   validarEsquema(sobreMiSchema),
   actualizarTextoSobreMi
+);
+
+// Actualizar foto de Sobre Mí
+router.put(
+  '/perfil/sobre-mi/imagen',
+  verificarToken,
+  verificarCsrf,
+  uploadFotos.single('imagen'),
+  actualizarFotoSobreMi
 );
 
 export default router;

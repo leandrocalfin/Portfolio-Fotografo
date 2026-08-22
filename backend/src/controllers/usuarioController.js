@@ -569,11 +569,13 @@ export const actualizarPortada = async (
 
 
 // ==========================================
-// 5b. ACTUALIZAR TEXTO SOBRE MI
+// 5b. ACTUALIZAR SECCION SOBRE MI
 // ==========================================
 /*
-  Llega ya validado por sobreMiSchema
-  (texto presente, entre 1 y 5000 caracteres).
+  Guarda titulo y texto de la seccion.
+  Llegan validados por sobreMiSchema:
+  - texto: obligatorio, 1 a 5000 caracteres
+  - titulo: opcional, max 120 (vacio = usa default)
 */
 export const actualizarTextoSobreMi =
   async (req, res) => {
@@ -593,11 +595,17 @@ export const actualizarTextoSobreMi =
       usuario.textoSobreMi =
         req.body.textoSobreMi;
 
+      usuario.tituloSobreMi =
+        req.body.tituloSobreMi ?? '';
+
       await usuario.save();
 
       return res.status(200).json({
         mensaje:
-          'Texto de Sobre Mí actualizado con éxito.',
+          'Sección Sobre Mí actualizada con éxito.',
+
+        tituloSobreMi:
+          usuario.tituloSobreMi,
 
         textoSobreMi:
           usuario.textoSobreMi
@@ -618,6 +626,59 @@ export const actualizarTextoSobreMi =
 
 
 // ==========================================
+// 5c. ACTUALIZAR FOTO SOBRE MI
+// ==========================================
+export const actualizarFotoSobreMi = async (
+  req,
+  res
+) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        mensaje:
+          'No se ha proporcionado ninguna imagen.'
+      });
+    }
+
+    const usuario =
+      await Usuario.findById(
+        req.usuario.id
+      );
+
+    if (!usuario) {
+      return res.status(404).json({
+        mensaje:
+          'Usuario no encontrado.'
+      });
+    }
+
+    usuario.fotoSobreMi =
+      req.file.path;
+
+    await usuario.save();
+
+    return res.status(200).json({
+      mensaje:
+        'Foto de Sobre Mí actualizada con éxito.',
+      fotoSobreMi:
+        usuario.fotoSobreMi
+    });
+
+  } catch (error) {
+    console.error(
+      'ERROR AL ACTUALIZAR FOTO SOBRE MI:',
+      error
+    );
+
+    return res.status(500).json({
+      mensaje:
+        'Error interno del servidor.'
+    });
+  }
+};
+
+
+// ==========================================
 // 6. PERFIL PÚBLICO
 // ==========================================
 export const obtenerPerfilPublico =
@@ -627,7 +688,7 @@ export const obtenerPerfilPublico =
         await Usuario
           .findOne()
           .select(
-            'instagram whatsapp fotoPortada textoSobreMi'
+            'instagram whatsapp fotoPortada tituloSobreMi textoSobreMi fotoSobreMi'
           );
 
       if (!usuario) {
@@ -647,8 +708,14 @@ export const obtenerPerfilPublico =
         fotoPortada:
           usuario.fotoPortada || '',
 
+        tituloSobreMi:
+          usuario.tituloSobreMi || '',
+
         textoSobreMi:
-          usuario.textoSobreMi || ''
+          usuario.textoSobreMi || '',
+
+        fotoSobreMi:
+          usuario.fotoSobreMi || ''
       });
 
     } catch (error) {

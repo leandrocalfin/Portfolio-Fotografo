@@ -96,6 +96,16 @@ export const sobreMiSchema = z.object({
     .max(
       5000,
       'El texto no puede superar los 5000 caracteres.'
+    ),
+
+  tituloSobreMi: z
+    .string()
+    .trim()
+    .max(
+      120,
+      'El titulo no puede superar los 120 caracteres.'
     )
+    .optional()
+    .default('')
 
 });

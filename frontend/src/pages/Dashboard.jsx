@@ -162,10 +162,13 @@ const Dashboard = () => {
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
 
-  // Estados para portada y texto Sobre Mí
+  // Estados para portada y sección Sobre Mí
   const [nuevaPortada, setNuevaPortada] = useState(null);
   const [previewPortada, setPreviewPortada] = useState('');
+  const [tituloSobreMi, setTituloSobreMi] = useState('');
   const [textoSobreMi, setTextoSobreMi] = useState('');
+  const [nuevaFotoSobreMi, setNuevaFotoSobreMi] = useState(null);
+  const [previewFotoSobreMi, setPreviewFotoSobreMi] = useState('');
 
   // Estados para cambiar contraseña
   const [passwordActual, setPasswordActual] = useState('');
@@ -186,6 +189,7 @@ const Dashboard = () => {
     avatar: { tipo: 'idle', texto: '' },
     portada: { tipo: 'idle', texto: '' },
     sobreMi: { tipo: 'idle', texto: '' },
+    fotoSobreMi: { tipo: 'idle', texto: '' },
     whatsapp: { tipo: 'idle', texto: '' },
     instagram: { tipo: 'idle', texto: '' },
     password: { tipo: 'idle', texto: '' },
@@ -293,6 +297,7 @@ const Dashboard = () => {
       setPerfil(res.data);
       setWhatsapp(res.data.whatsapp || '');
       setInstagram(res.data.instagram || '');
+      setTituloSobreMi(res.data.tituloSobreMi || '');
       setTextoSobreMi(res.data.textoSobreMi || '');
     } catch (error) {
       console.error("Error al cargar perfil:", error);
@@ -345,14 +350,49 @@ const Dashboard = () => {
     try {
       await api.put(
         `/api/usuarios/perfil/sobre-mi`,
-        { textoSobreMi }
+        { textoSobreMi, tituloSobreMi }
       );
 
+      setPerfil((prev) => ({ ...prev, tituloSobreMi, textoSobreMi }));
       actualizarEstadoBoton('sobreMi', 'exito', '✓ Texto guardado');
     } catch (error) {
       console.error("Error al guardar Sobre Mí:", error);
       actualizarEstadoBoton(
         'sobreMi',
+        'error',
+        error.response?.data?.mensaje || 'Error al guardar',
+        2600
+      );
+    }
+  };
+
+  const handleCambiarFotoSobreMi = async (e) => {
+    e.preventDefault();
+    if (!nuevaFotoSobreMi) return;
+
+    actualizarEstadoBoton('fotoSobreMi', 'procesando', 'Guardando...');
+
+    const formData = new FormData();
+    formData.append('imagen', nuevaFotoSobreMi);
+
+    try {
+      const res = await api.put(
+        `/api/usuarios/perfil/sobre-mi/imagen`,
+        formData
+      );
+
+      setPerfil((prev) => ({ ...prev, fotoSobreMi: res.data.fotoSobreMi }));
+      actualizarEstadoBoton('fotoSobreMi', 'exito', '✓ Foto guardada', 0);
+
+      setTimeout(() => {
+        setNuevaFotoSobreMi(null);
+        setPreviewFotoSobreMi('');
+        actualizarEstadoBoton('fotoSobreMi', 'idle');
+      }, 1300);
+    } catch (error) {
+      console.error("Error al cambiar foto de Sobre Mí:", error);
+      actualizarEstadoBoton(
+        'fotoSobreMi',
         'error',
         error.response?.data?.mensaje || 'Error al guardar',
         2600
@@ -1302,26 +1342,82 @@ const Dashboard = () => {
                 </form>
               </div>
 
-              {/* 5. TEXTO SOBRE MÍ */}
+              {/* 5. SECCIÓN SOBRE MÍ */}
               <div className="md:col-span-2 xl:col-span-2 p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-2">Texto Sobre Mí</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-2">Sección Sobre Mí</h3>
                 <p className="text-[10px] text-neutral-500 leading-relaxed mb-4">
-                  Se muestra en la sección Sobre Mí. Separá los párrafos con una línea en blanco.
+                  Título, imagen y texto de la página Sobre Mí. Separá los párrafos con una línea en blanco.
                 </p>
 
-                <form onSubmit={handleGuardarSobreMi} className="flex flex-col gap-3">
-                  <textarea
-                    rows={8}
-                    maxLength={5000}
-                    value={textoSobreMi}
-                    onChange={(e) => setTextoSobreMi(e.target.value)}
-                    placeholder="Escribí acá tu presentación como fotógrafo/a..."
-                    className="w-full bg-white dark:bg-neutral-900 border border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs leading-relaxed focus:outline-none focus:border-azul-logo resize-y"
+                <form onSubmit={handleCambiarFotoSobreMi} className="w-full flex flex-col gap-3 mb-6">
+                  <div className="flex justify-between items-center gap-2 flex-wrap">
+                    <label className="text-[10px] uppercase font-bold text-neutral-500">Imagen de la sección</label>
+                    {nuevaFotoSobreMi && (
+                      <button
+                        type="submit"
+                        disabled={estadoBotones.fotoSobreMi.tipo === 'procesando' || estadoBotones.fotoSobreMi.tipo === 'exito'}
+                        className={`py-1.5 px-4 text-[10px] font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                          estadoBotones.fotoSobreMi,
+                          'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
+                        )}`}
+                      >
+                        {estadoBotones.fotoSobreMi.tipo === 'idle' ? 'Guardar Imagen' : estadoBotones.fotoSobreMi.texto}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="w-full aspect-[4/3] sm:aspect-video overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
+                    {previewFotoSobreMi ? (
+                      <img src={previewFotoSobreMi} alt="Preview Foto Sobre Mi" className="w-full h-full object-cover" />
+                    ) : perfil.fotoSobreMi ? (
+                      <img src={perfil.fotoSobreMi} alt="Foto Sobre Mi Actual" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs text-neutral-500 px-6 text-center">Sin imagen personalizada (se usa la imagen por defecto)</span>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files[0]) {
+                        setNuevaFotoSobreMi(e.target.files[0]);
+                        setPreviewFotoSobreMi(URL.createObjectURL(e.target.files[0]));
+                      }
+                    }}
+                    className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer"
                   />
+                </form>
+
+                <form onSubmit={handleGuardarSobreMi} className="flex flex-col gap-3">
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Título</label>
+                    <input
+                      type="text"
+                      value={tituloSobreMi}
+                      onChange={(e) => setTituloSobreMi(e.target.value)}
+                      maxLength={120}
+                      placeholder="Ej: Capturando la esencia de cada historia"
+                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Texto</label>
+                    <textarea
+                      rows={8}
+                      maxLength={5000}
+                      value={textoSobreMi}
+                      onChange={(e) => setTextoSobreMi(e.target.value)}
+                      placeholder="Escribí acá tu presentación como fotógrafo/a..."
+                      className="w-full bg-white dark:bg-neutral-900 border border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs leading-relaxed focus:outline-none focus:border-azul-logo resize-y"
+                    />
+                  </div>
+
                   <div className="flex justify-between items-center gap-2 flex-wrap">
                     <span className="text-[10px] text-neutral-500">{textoSobreMi.length} / 5000 caracteres</span>
                     {!perfil.textoSobreMi && !textoSobreMi && (
-                      <span className="text-[10px] text-neutral-400 italic">Vacío = se muestra el texto por defecto</span>
+                      <span className="text-[10px] text-neutral-400 italic">Vacío = se muestra el contenido por defecto</span>
                     )}
                   </div>
                   <button
@@ -1332,7 +1428,7 @@ const Dashboard = () => {
                       'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 cursor-pointer hover:opacity-90'
                     )}`}
                   >
-                    {estadoBotones.sobreMi.tipo === 'idle' ? 'Guardar Texto' : estadoBotones.sobreMi.texto}
+                    {estadoBotones.sobreMi.tipo === 'idle' ? 'Guardar Título y Texto' : estadoBotones.sobreMi.texto}
                   </button>
                 </form>
               </div>
