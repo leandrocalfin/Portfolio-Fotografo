@@ -1025,7 +1025,7 @@ const Dashboard = () => {
 
         {/* ================= SECCIÓN GESTIÓN DE SERVICIOS ================= */}
         {(seccionActiva === 'todas' || seccionActiva === 'admin-servicios') && (
-        <div id="admin-servicios" className="pt-12" >
+        <div id="admin-servicios" >
           <div className="text-center mb-8">
             <h2 className="text-lg sm:text-xl lg:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
               Servicios
@@ -1132,7 +1132,7 @@ const Dashboard = () => {
         {/* SECCIÓN DE CONFIGURACIÓN DE PERFIL Y AJUSTES               */}
         {/* ========================================================== */}
         {(seccionActiva === 'todas' || seccionActiva === 'ajustes-perfil') && (
-        <div id="ajustes-perfil" className="pt-12 mt-8">
+        <div id="ajustes-perfil">
           <div className="text-center mb-8">
             <h2 className="text-lg sm:text-xl lg:text-2xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-wide">
               Configurar Perfil
