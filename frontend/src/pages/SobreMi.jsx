@@ -244,10 +244,9 @@ const SobreMi = () => {
 
                 text-xs
                 leading-relaxed
-                text-left
+                text-justify
 
                 sm:text-sm
-                sm:text-justify
 
                 md:text-[13px]
                 md:leading-6
@@ -309,7 +308,7 @@ const SobreMi = () => {
                 lg:py-4
               "
             >
-              Conocer Más
+              Hablemos
 
               <svg
                 className="
