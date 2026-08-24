@@ -1001,7 +1001,7 @@ const Dashboard = () => {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5 lg:gap-6">
                 {trabajos.map((trabajo) => (
-                  <div key={trabajo._id} onClick={() => window.open(`/trabajo/${trabajo._id}`, '_blank')} className="flex flex-col bg-[#78A4CB]/15 dark:bg-neutral-900 cursor-pointer group shadow-lg hover:-translate-y-1 transition-transform duration-300 border-t-2 border-t-azul-logo">
+                  <div key={trabajo._id} onClick={() => navigate(`/trabajo/${trabajo._id}`)} className="flex flex-col bg-[#78A4CB]/15 dark:bg-neutral-900 cursor-pointer group shadow-lg hover:-translate-y-1 transition-transform duration-300 border-t-2 border-t-azul-logo">
                     <div className="h-32 sm:h-44 lg:h-48 bg-cover bg-center w-full" style={{ backgroundImage: `url(${trabajo.fotos?.[0] || ''})` }}></div>
                     <div className="p-2.5 sm:p-5 lg:p-6 flex-grow flex flex-col justify-between">
                       <div>
