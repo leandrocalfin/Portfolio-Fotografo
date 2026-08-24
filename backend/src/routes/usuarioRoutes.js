@@ -7,6 +7,7 @@ import {
   obtenerPerfil,
   actualizarAvatar,
   actualizarPortada,
+  actualizarPosicionPortada,
   actualizarInfoPerfil,
   actualizarTextoSobreMi,
   actualizarFotoSobreMi,
@@ -26,7 +27,8 @@ import { validarEsquema } from '../middlewares/validarZod.js';
 import {
   loginSchema,
   cambiarPasswordSchema,
-  sobreMiSchema
+  sobreMiSchema,
+  portadaPosicionSchema
 } from '../schemas/usuarioSchema.js';
 
 import { uploadFotos } from '../config/cloudinary.js';
@@ -100,6 +102,15 @@ router.put(
   verificarCsrf,
   uploadFotos.single('imagen'),
   actualizarPortada
+);
+
+// Reencuadrar la portada sin volver a subirla
+router.put(
+  '/perfil/portada/posicion',
+  verificarToken,
+  verificarCsrf,
+  validarEsquema(portadaPosicionSchema),
+  actualizarPosicionPortada
 );
 
 // Actualizar texto de Sobre Mí

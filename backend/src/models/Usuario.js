@@ -44,6 +44,28 @@ const usuarioSchema = new mongoose.Schema({
   },
 
   /*
+    Punto focal de la portada, en porcentajes.
+    Define qué parte de la imagen se ve en el hero
+    (por ejemplo centrar el rostro del sujeto).
+    x: 0 = borde izquierdo, 100 = borde derecho.
+    y: 0 = borde superior, 100 = borde inferior.
+  */
+  portadaPosicion: {
+    x: {
+      type: Number,
+      default: 50,
+      min: 0,
+      max: 100
+    },
+    y: {
+      type: Number,
+      default: 50,
+      min: 0,
+      max: 100
+    }
+  },
+
+  /*
     Texto libre de la sección Sobre Mí.
     El frontend separa los párrafos por líneas
     vacías (doble salto de línea) para mostrarlo

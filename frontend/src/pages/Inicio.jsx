@@ -19,6 +19,7 @@ const Inicio = () => {
   // ==========================================
 
   const [portada, setPortada] = useState("");
+  const [portadaPos, setPortadaPos] = useState(null);
 
   useEffect(() => {
     const cargarPortada = async () => {
@@ -26,8 +27,10 @@ const Inicio = () => {
         // Si falla, simplemente se usa la imagen por defecto.
         const respuesta = await api.get("/api/usuarios/perfil-publico");
         setPortada(respuesta.data.fotoPortada || "");
+        setPortadaPos(respuesta.data.portadaPosicion || null);
       } catch {
         setPortada("");
+        setPortadaPos(null);
       }
     };
 
@@ -172,12 +175,13 @@ const Inicio = () => {
               z-0
               bg-cover
               bg-no-repeat
-              [background-position:center_30%]
-              md:bg-center
             "
             style={{
               backgroundImage:
                 `url('${portada || "/fondo.png"}')`,
+              backgroundPosition: portadaPos
+                ? `${portadaPos.x}% ${portadaPos.y}%`
+                : "center"
             }}
           >
             {/* OSCURECIMIENTO */}

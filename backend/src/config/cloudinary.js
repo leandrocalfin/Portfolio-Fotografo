@@ -66,8 +66,8 @@ export const uploadFotos = multer({
   storage,
 
   limits: {
-    // Máximo 10 MB por imagen
-    fileSize: 10 * 1024 * 1024,
+    // Máximo 15 MB por imagen
+    fileSize: 15 * 1024 * 1024,
 
     // Máximo 7 archivos por request
     files: 7

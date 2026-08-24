@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/api';
+import EditorPortada from '../components/EditorPortada';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -170,6 +171,11 @@ const Dashboard = () => {
   // Estados para portada y sección Sobre Mí
   const [nuevaPortada, setNuevaPortada] = useState(null);
   const [previewPortada, setPreviewPortada] = useState('');
+
+  // Editor de encuadre de portada (punto focal)
+  const [editorPortada, setEditorPortada] = useState(null);
+  const [guardandoEditor, setGuardandoEditor] = useState(false);
+  const [errorEditor, setErrorEditor] = useState('');
   const [tituloSobreMi, setTituloSobreMi] = useState('');
   const [textoSobreMi, setTextoSobreMi] = useState('');
   const [nuevaFotoSobreMi, setNuevaFotoSobreMi] = useState(null);
@@ -318,37 +324,84 @@ const Dashboard = () => {
   // ==========================================
   // LÓGICA DE PORTADA Y SOBRE MÍ
   // ==========================================
-  const handleCambiarPortada = async (e) => {
-    e.preventDefault();
-    if (!nuevaPortada) return;
 
-    actualizarEstadoBoton('portada', 'procesando', 'Guardando...');
+  /*
+    Abre el editor de encuadre. Si hay archivo,
+    se guardara imagen + posicion juntos; si no,
+    solo se reencuadra la imagen actual.
+  */
+  const abrirEditorPortada = (archivo, url, posicion) => {
+    setErrorEditor('');
+    setGuardandoEditor(false);
 
-    const formData = new FormData();
-    formData.append('imagen', nuevaPortada);
+    setEditorPortada({
+      archivo,
+      url,
+      posicion:
+        posicion ||
+        perfil?.portadaPosicion || { x: 50, y: 50 }
+    });
+  };
+
+  const cerrarEditorPortada = () => {
+    if (guardandoEditor) return;
+
+    if (editorPortada?.url?.startsWith('blob:')) {
+      URL.revokeObjectURL(editorPortada.url);
+    }
+
+    setEditorPortada(null);
+  };
+
+  const handleGuardarEncuadre = async (pos) => {
+    if (!editorPortada) return;
+
+    setGuardandoEditor(true);
+    setErrorEditor('');
 
     try {
-      const res = await api.put(
-        `/api/usuarios/perfil/portada`,
-        formData
-      );
+      if (editorPortada.archivo) {
+        // Imagen nueva + encuadre, todo junto.
+        const formData = new FormData();
+        formData.append('imagen', editorPortada.archivo);
+        formData.append('posicionX', pos.x);
+        formData.append('posicionY', pos.y);
 
-      setPerfil((prev) => ({ ...prev, fotoPortada: res.data.fotoPortada }));
-      actualizarEstadoBoton('portada', 'exito', '✓ Portada guardada', 0);
+        const res = await api.put(
+          '/api/usuarios/perfil/portada',
+          formData
+        );
 
-      setTimeout(() => {
+        setPerfil((prev) => ({
+          ...prev,
+          fotoPortada: res.data.fotoPortada,
+          portadaPosicion: res.data.portadaPosicion
+        }));
+
         setNuevaPortada(null);
         setPreviewPortada('');
-        actualizarEstadoBoton('portada', 'idle');
-      }, 1300);
+      } else {
+        // Solo reencuadre de la imagen actual.
+        const res = await api.put(
+          '/api/usuarios/perfil/portada/posicion',
+          pos
+        );
+
+        setPerfil((prev) => ({
+          ...prev,
+          portadaPosicion: res.data.portadaPosicion
+        }));
+      }
+
+      setEditorPortada(null);
     } catch (error) {
-      console.error("Error al cambiar portada:", error);
-      actualizarEstadoBoton(
-        'portada',
-        'error',
-        error.response?.data?.mensaje || 'Error al guardar',
-        2600
+      console.error('Error al guardar la portada:', error);
+      setErrorEditor(
+        error.response?.data?.mensaje ||
+          'Error al guardar el encuadre.'
       );
+    } finally {
+      setGuardandoEditor(false);
     }
   };
 
@@ -1227,31 +1280,38 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                <form onSubmit={handleCambiarPortada} className="w-full flex flex-col gap-3 mt-auto">
+                <div className="w-full flex flex-col gap-2 mt-auto">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
-                      if (e.target.files[0]) {
-                        setNuevaPortada(e.target.files[0]);
-                        setPreviewPortada(URL.createObjectURL(e.target.files[0]));
-                      }
+                      const archivo = e.target.files[0];
+                      if (!archivo) return;
+
+                      const url = URL.createObjectURL(archivo);
+
+                      setNuevaPortada(archivo);
+                      setPreviewPortada(url);
+
+                      abrirEditorPortada(archivo, url, null);
                     }}
                     className="text-xs text-neutral-500 file:mr-2 file:py-2 file:px-3 file:border-0 file:text-[10px] file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer w-full"
                   />
-                  {nuevaPortada && (
-                    <button
-                      type="submit"
-                      disabled={estadoBotones.portada.tipo === 'procesando' || estadoBotones.portada.tipo === 'exito'}
-                      className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
-                        estadoBotones.portada,
-                        'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
-                      )}`}
-                    >
-                      {estadoBotones.portada.tipo === 'idle' ? 'Guardar Portada' : estadoBotones.portada.texto}
-                    </button>
-                  )}
-                </form>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      abrirEditorPortada(
+                        null,
+                        perfil.fotoPortada || '/fondo.png',
+                        perfil.portadaPosicion
+                      )
+                    }
+                    className="w-full py-2 text-[10px] font-bold uppercase tracking-widest border border-azul-logo text-azul-logo hover:bg-azul-logo hover:text-white transition-colors cursor-pointer"
+                  >
+                    Ajustar Encuadre
+                  </button>
+                </div>
               </div>
 
               {/* FOTO SOBRE MÍ */}
@@ -1600,6 +1660,44 @@ const Dashboard = () => {
                 )}
             </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================
+            MODAL · EDITOR DE ENCUADRE DE PORTADA
+        ========================================== */}
+        {editorPortada && (
+          <div
+            className="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+            onClick={cerrarEditorPortada}
+          >
+            <div
+              className="w-full max-w-2xl bg-white dark:bg-neutral-950 shadow-2xl p-5 sm:p-7 my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-sm sm:text-base font-titulos font-bold uppercase tracking-wide text-neutral-900 dark:text-white mb-1">
+                Encuadre de Portada
+              </h3>
+
+              <p className="text-neutral-600 dark:text-neutral-400 text-xs italic mb-5">
+                {editorPortada.archivo
+                  ? 'Elegí cómo se verá tu nueva portada antes de guardar.'
+                  : 'Mové la imagen y guardá el nuevo encuadre.'}
+              </p>
+
+              {errorEditor && (
+                <p className="text-xs text-red-500 font-bold mb-4">{errorEditor}</p>
+              )}
+
+              <EditorPortada
+                imagenSrc={editorPortada.url}
+                posicionInicial={editorPortada.posicion}
+                guardando={guardandoEditor}
+                textoBoton={editorPortada.archivo ? 'Guardar Portada' : 'Guardar Encuadre'}
+                onGuardar={handleGuardarEncuadre}
+                onCerrar={cerrarEditorPortada}
+              />
             </div>
           </div>
         )}

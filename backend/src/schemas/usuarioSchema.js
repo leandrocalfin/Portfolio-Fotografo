@@ -109,3 +109,33 @@ export const sobreMiSchema = z.object({
     .default('')
 
 });
+
+
+// ==========================================
+// POSICION DE LA PORTADA (PUNTO FOCAL)
+// ==========================================
+
+/*
+  Coordenadas en porcentaje del punto
+  focal de la imagen de portada.
+*/
+
+export const portadaPosicionSchema = z.object({
+
+  x: z
+    .number({
+      required_error: 'La posicion X es obligatoria.',
+      invalid_type_error: 'La posicion X debe ser un numero.'
+    })
+    .min(0, 'La posicion X no puede ser menor a 0.')
+    .max(100, 'La posicion X no puede superar 100.'),
+
+  y: z
+    .number({
+      required_error: 'La posicion Y es obligatoria.',
+      invalid_type_error: 'La posicion Y debe ser un numero.'
+    })
+    .min(0, 'La posicion Y no puede ser menor a 0.')
+    .max(100, 'La posicion Y no puede superar 100.')
+
+});

@@ -545,13 +545,33 @@ export const actualizarPortada = async (
     usuario.fotoPortada =
       req.file.path;
 
+    /*
+      Posición opcional del punto focal.
+      Llega como texto desde FormData;
+      si no viene, se mantiene la actual.
+    */
+    const x = Number(req.body.posicionX);
+    const y = Number(req.body.posicionY);
+
+    if (
+      Number.isFinite(x) &&
+      Number.isFinite(y)
+    ) {
+      usuario.portadaPosicion = {
+        x: Math.min(100, Math.max(0, x)),
+        y: Math.min(100, Math.max(0, y))
+      };
+    }
+
     await usuario.save();
 
     return res.status(200).json({
       mensaje:
         'Foto de portada actualizada con éxito.',
       fotoPortada:
-        usuario.fotoPortada
+        usuario.fotoPortada,
+      portadaPosicion:
+        usuario.portadaPosicion
     });
 
   } catch (error) {
@@ -566,6 +586,57 @@ export const actualizarPortada = async (
     });
   }
 };
+
+
+// ==========================================
+// 4c. ACTUALIZAR POSICION DE LA PORTADA
+// ==========================================
+/*
+  Permite reencuadrar la portada sin
+  volver a subir la imagen. Llegan
+  validados por portadaPosicionSchema.
+*/
+export const actualizarPosicionPortada =
+  async (req, res) => {
+    try {
+      const usuario =
+        await Usuario.findById(
+          req.usuario.id
+        );
+
+      if (!usuario) {
+        return res.status(404).json({
+          mensaje:
+            'Usuario no encontrado.'
+        });
+      }
+
+      usuario.portadaPosicion = {
+        x: req.body.x,
+        y: req.body.y
+      };
+
+      await usuario.save();
+
+      return res.status(200).json({
+        mensaje:
+          'Encuadre de la portada actualizado con éxito.',
+        portadaPosicion:
+          usuario.portadaPosicion
+      });
+
+    } catch (error) {
+      console.error(
+        'ERROR AL ACTUALIZAR POSICION DE PORTADA:',
+        error
+      );
+
+      return res.status(500).json({
+        mensaje:
+          'Error interno del servidor.'
+      });
+    }
+  };
 
 
 // ==========================================
@@ -688,7 +759,7 @@ export const obtenerPerfilPublico =
         await Usuario
           .findOne()
           .select(
-            'instagram whatsapp fotoPortada tituloSobreMi textoSobreMi fotoSobreMi'
+            'instagram whatsapp fotoPortada portadaPosicion tituloSobreMi textoSobreMi fotoSobreMi'
           );
 
       if (!usuario) {
@@ -707,6 +778,9 @@ export const obtenerPerfilPublico =
 
         fotoPortada:
           usuario.fotoPortada || '',
+
+        portadaPosicion:
+          usuario.portadaPosicion || { x: 50, y: 50 },
 
         tituloSobreMi:
           usuario.tituloSobreMi || '',
