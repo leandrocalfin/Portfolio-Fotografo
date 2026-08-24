@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/api';
 import EditorPortada from '../components/EditorPortada';
+import { optimizarFotos } from '../utils/optimizarFotos';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -695,8 +696,26 @@ const Dashboard = () => {
     actualizarEstadoBoton(
       'trabajo',
       'procesando',
-      estabaEditando ? 'Actualizando...' : 'Publicando...'
+      archivos.length ? 'Optimizando fotos...' : (estabaEditando ? 'Actualizando...' : 'Publicando...')
     );
+
+    // Las fotos de menos de 10 MB pasan intactas;
+    // las más pesadas se adaptan solas en el navegador.
+    let fotosAEnviar = archivos;
+
+    if (archivos.length) {
+      try {
+        fotosAEnviar = await optimizarFotos(archivos);
+      } catch (errorOptimizacion) {
+        console.error('Error al optimizar fotos:', errorOptimizacion);
+      }
+
+      actualizarEstadoBoton(
+        'trabajo',
+        'procesando',
+        estabaEditando ? 'Guardando...' : 'Publicando...'
+      );
+    }
 
     const formData = new FormData();
     formData.append('titulo', titulo);
@@ -704,7 +723,7 @@ const Dashboard = () => {
     formData.append('categoria', categoria);
     formData.append('linkDrive', linkDrive);
 
-    archivos.forEach((archivo) => {
+    fotosAEnviar.forEach((archivo) => {
       formData.append('imagenes', archivo);
     });
 
