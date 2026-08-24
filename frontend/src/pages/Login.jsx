@@ -57,9 +57,9 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-crema-suave dark:bg-neutral-950 flex flex-col justify-center items-center px-6 relative z-10 transition-colors duration-300">
 
-      <div className="w-full max-w-md bg-[#78A4CB]/15 dark:bg-neutral-900 p-8 md:p-12 shadow-xl border-t-4 border-t-azul-logo relative overflow-hidden transition-colors">
+      <div className="w-full max-w-[300px] xs:max-w-xs sm:max-w-sm md:max-w-md bg-[#78A4CB]/15 dark:bg-neutral-900 p-6 sm:p-8 md:p-12 shadow-xl border-t-4 border-t-azul-logo relative overflow-hidden transition-colors">
 
-        <div className="text-center mb-10">
+        <div className="text-center mb-6 sm:mb-8 md:mb-10">
           <h2 className="text-3xl text-neutral-900 dark:text-white font-titulos font-bold uppercase tracking-widest mb-2 transition-colors">
             Acceso
           </h2>
@@ -77,7 +77,7 @@ const Login = () => {
 
         <form
           onSubmit={manejarSubmit}
-          className="flex flex-col gap-8 relative z-10"
+          className="flex flex-col gap-5 sm:gap-6 md:gap-8 relative z-10"
         >
           <div className="flex flex-col gap-3">
             <label className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-700 dark:text-neutral-300 ml-1">
@@ -113,7 +113,7 @@ const Login = () => {
             />
           </div>
 
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-2 sm:mt-4">
             <button
               type="submit"
               disabled={cargando}
