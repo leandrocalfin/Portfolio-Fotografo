@@ -77,7 +77,7 @@ const GaleriaCompleta = () => {
             <p className="text-neutral-600 dark:text-neutral-400 font-bold uppercase tracking-widest animate-pulse">Cargando portafolio completo...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             
             {trabajosFiltrados.map((trabajo) => (
               <Link 
@@ -92,14 +92,14 @@ const GaleriaCompleta = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
                 {/* CONTENEDOR DE TEXTOS ALINEADO ABAJO */}
-                <div className="absolute bottom-0 left-0 p-8 w-full flex flex-col justify-end">
+                <div className="absolute bottom-0 left-0 p-3 sm:p-8 w-full flex flex-col justify-end">
                   
                   {/* BLOQUE INSEPARABLE: TÍTULO Y BOTÓN */}
                   <div className="flex flex-col">
-                    <h3 className="text-white font-bold text-xl tracking-widest uppercase mb-1 drop-shadow-md">
+                    <h3 className="text-white font-bold text-xs sm:text-xl tracking-widest uppercase mb-1 drop-shadow-md">
                       {trabajo.titulo}
                     </h3>
-                    <span className="text-azul-logo text-xs tracking-widest uppercase font-bold group-hover:text-white transition-colors flex items-center gap-2">
+                    <span className="text-azul-logo text-[9px] sm:text-xs tracking-widest uppercase font-bold group-hover:text-white transition-colors flex items-center gap-2">
                       Ver Sesión Completa
                       <span className="transform transition-transform duration-300 group-hover:translate-x-2">&rarr;</span>
                     </span>
