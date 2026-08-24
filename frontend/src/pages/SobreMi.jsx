@@ -58,24 +58,25 @@ const SobreMi = () => {
     <section
       id="sobre-mi"
       className="
+        relative
         py-16
         px-4
         max-w-7xl
         mx-auto
         w-full
+        overflow-hidden
         transition-colors
         duration-300
 
         sm:px-6
-        sm:py-20
+        sm:py-24
 
-        md:py-16
-
-        lg:py-24
+        md:py-28
       "
     >
       {/* TÍTULO */}
-      <div className="text-center mb-10 md:mb-10 lg:mb-16">
+
+      <div className="relative text-center mb-12 lg:mb-20">
         <h3
           className="
             text-neutral-900
@@ -83,9 +84,11 @@ const SobreMi = () => {
             font-bold
             tracking-[0.2em]
             uppercase
+
             text-lg
             md:text-lg
             lg:text-xl
+
             relative
             inline-block
             transition-colors
@@ -97,107 +100,241 @@ const SobreMi = () => {
         </h3>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL */}
-      <div
+      {/* TEXTO FANTASMA DE FONDO */}
+
+      <span
+        aria-hidden="true"
         className="
-          grid
-          grid-cols-1
-          gap-8
-          items-center
+          pointer-events-none
+          select-none
+          absolute
+          top-1/2
+          left-1/2
+          -translate-x-1/2
+          -translate-y-1/2
+          font-titulos
+          font-bold
+          uppercase
+          whitespace-nowrap
+          leading-none
 
-          bg-[#78A4CB]/15
-          dark:bg-neutral-900
-
-          p-5
-          sm:p-7
-
-          md:grid-cols-2
-          md:gap-8
-          md:p-7
-
-          lg:gap-12
-          lg:p-16
-
-          rounded-sm
-          shadow-xl
-          border-t-4
-          border-t-azul-logo
-          transition-colors
+          text-[18vw]
+          text-neutral-900/[0.04]
+          dark:text-white/[0.03]
         "
       >
-        {/* IMAGEN */}
-        <div
-          className="
-            relative
-            group
-            overflow-hidden
-            rounded-sm
+        Sobre Mí
+      </span>
 
-            aspect-[4/3]
+      {/* CRUCES DECORATIVAS */}
 
-            md:aspect-[4/3]
+      <svg
+        aria-hidden="true"
+        className="
+          hidden
+          md:block
+          absolute
+          top-12
+          right-8
+          w-6
+          h-6
+          text-azul-logo/40
+          dark:text-azul-logo/30
+        "
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeWidth="2" d="M12 5v14M5 12h14" />
+      </svg>
 
-            lg:aspect-square
+      <svg
+        aria-hidden="true"
+        className="
+          hidden
+          md:block
+          absolute
+          bottom-12
+          left-8
+          w-6
+          h-6
+          text-azul-logo/40
+          dark:text-azul-logo/30
+        "
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeWidth="2" d="M12 5v14M5 12h14" />
+      </svg>
 
-            shadow-2xl
-            bg-neutral-200
-            dark:bg-neutral-900
-            border
-            border-azul-logo/20
-          "
-        >
+      {/* CONTENEDOR PRINCIPAL */}
+
+      <div
+        className="
+          relative
+          grid
+          grid-cols-1
+          gap-16
+
+          lg:grid-cols-[5fr_6fr]
+          lg:gap-20
+          items-center
+        "
+      >
+        {/* IMAGEN CON MARCO DESPLAZADO */}
+
+        <div className="group relative w-full max-w-[195px] mx-auto sm:max-w-xs lg:max-w-none">
+          {/* Marco desplazado detrás de la foto */}
+
           <div
+            aria-hidden="true"
             className="
               absolute
               inset-0
-              bg-cover
-              bg-center
+              translate-x-4
+              translate-y-4
+              border-2
+              border-azul-logo
+              rounded-sm
               transition-transform
-              duration-1000
-              group-hover:scale-105
+              duration-500
+
+              group-hover:translate-x-2
+              group-hover:translate-y-2
             "
-            style={{
-              backgroundImage:
-                `url('${fotoSobreMi || IMAGEN_POR_DEFECTO}')`,
-            }}
           />
+
+          {/* Foto */}
+
+          <div
+            className="
+              relative
+              overflow-hidden
+              rounded-sm
+
+              aspect-[4/5]
+
+              shadow-2xl
+              bg-neutral-200
+              dark:bg-neutral-800
+            "
+          >
+            <div
+              className="
+                absolute
+                inset-0
+                bg-cover
+                bg-center
+                transition-transform
+                duration-[1500ms]
+
+                group-hover:scale-105
+              "
+              style={{
+                backgroundImage:
+                  `url('${fotoSobreMi || IMAGEN_POR_DEFECTO}')`,
+              }}
+            />
+
+            <div
+              className="
+                absolute
+                inset-0
+                bg-gradient-to-t
+                from-neutral-950/40
+                via-transparent
+                to-transparent
+              "
+            />
+          </div>
+
+          {/* SELLO GIRATORIO MB */}
 
           <div
             className="
               absolute
-              inset-0
-              bg-black/10
-              dark:bg-neutral-950/20
-              group-hover:bg-transparent
-              transition-colors
+              -bottom-8
+              right-6
+              md:right-10
+
+              w-16
+              h-16
+              md:w-28
+              md:h-28
+
+              rounded-full
+              bg-white/20
+              backdrop-blur-sm
+              border-2
+              border-azul-logo
+              shadow-2xl
+
+              flex
+              flex-col
+              items-center
+              justify-center
+
+              rotate-[-8deg]
+              group-hover:rotate-0
+              transition-transform
               duration-500
+              z-10
             "
-          />
+          >
+            <img
+              src="/logo.png"
+              alt="Logo MB Fotografía"
+              className="
+                block
+                dark:hidden
+                w-11
+                h-11
+                md:w-20
+                md:h-20
+                object-contain
+              "
+            />
+
+            <img
+              src="/logo2.png"
+              alt="Logo MB Fotografía"
+              className="
+                hidden
+                dark:block
+                w-11
+                h-11
+                md:w-20
+                md:h-20
+                object-contain
+              "
+            />
+          </div>
         </div>
 
         {/* TEXTOS */}
+
         <div className="flex flex-col justify-center">
-          <h2
-            className="
-              text-azul-logo
-              font-bold
-              tracking-[0.2em]
-              uppercase
+          {/* KICKER */}
 
-              text-[10px]
-              mb-3
+          <div className="flex items-center gap-3 mb-5">
+            <span className="w-10 h-px bg-azul-logo shrink-0" />
 
-              sm:text-xs
+            <h2
+              className="
+                text-azul-logo
+                font-bold
+                tracking-[0.25em]
+                uppercase
+                text-[10px]
+                sm:text-xs
+              "
+            >
+              Detrás del Lente... Michael Bogue
+            </h2>
+          </div>
 
-              md:text-[11px]
-              md:mb-3
-
-              lg:text-sm
-              lg:mb-4
-            "
-          >
-            Detrás del Lente... Michael Bogue
-          </h2>
+          {/* TÍTULO */}
 
           <h3
             className="
@@ -208,19 +345,15 @@ const SobreMi = () => {
               uppercase
               transition-colors
 
-              text-2xl
+              text-3xl
               leading-tight
-              mb-4
+              mb-6
 
-              sm:text-3xl
+              sm:text-4xl
 
-              md:text-[28px]
-              md:leading-[1.05]
-              md:mb-4
-
-              lg:text-4xl
-              lg:leading-tight
-              lg:mb-6
+              lg:text-5xl
+              lg:leading-[1.05]
+              lg:mb-8
             "
           >
             {tituloSobreMi.trim()
@@ -232,6 +365,8 @@ const SobreMi = () => {
                   </span>
                 ))}
           </h3>
+
+          {/* PÁRRAFOS */}
 
           {parrafos.map((parrafo, indice) => (
             <p
@@ -256,14 +391,24 @@ const SobreMi = () => {
 
                 ${
                   indice === parrafos.length - 1
-                    ? "mb-6 md:mb-6 lg:mb-10"
+                    ? "mb-8"
                     : "mb-4 md:mb-4 lg:mb-6"
+                }
+
+                ${
+                  indice === 0
+                    ? "first-letter:float-left first-letter:mr-3 first-letter:text-5xl first-letter:font-titulos first-letter:font-bold first-letter:text-azul-logo first-letter:leading-[0.85]"
+                    : ""
                 }
               `}
             >
               {parrafo}
             </p>
           ))}
+
+          {/* DIVISOR Y BOTÓN */}
+
+          <div className="w-full h-px bg-gradient-to-r from-azul-logo/60 to-transparent mb-8" />
 
           <div>
             <a

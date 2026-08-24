@@ -179,6 +179,7 @@ const Dashboard = () => {
   // y recien al tocar "Modificar" se despliegan.
   const [editandoRedes, setEditandoRedes] = useState(false);
   const [editandoSobreMi, setEditandoSobreMi] = useState(false);
+  const [editandoPassword, setEditandoPassword] = useState(false);
 
   // Estados para cambiar contraseña
   const [passwordActual, setPasswordActual] = useState('');
@@ -1142,26 +1143,45 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <div className="bg-[#78A4CB]/15 dark:bg-neutral-900 p-4 sm:p-6 lg:p-10 xl:p-12 shadow-2xl border-t-4 border-t-azul-logo">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 xl:gap-8">
+          {/* ==========================================
+              GRUPO 1 · IDENTIDAD VISUAL
+              Las tres imágenes del sitio juntas,
+              con exactamente el mismo diseño.
+          ========================================== */}
+          <div className="bg-[#78A4CB]/15 dark:bg-neutral-900 shadow-xl border-t-4 border-t-azul-logo p-4 sm:p-6 lg:p-8 mb-6 lg:mb-8">
+            <div className="mb-6">
+              <h3 className="text-sm sm:text-base font-titulos font-bold uppercase tracking-wide text-neutral-900 dark:text-white">
+                Identidad Visual
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 text-xs italic mt-1">
+                Las imágenes que representan tu marca en el sitio.
+              </p>
+            </div>
 
-              {/* 1. FOTO DE PERFIL */}
-              <div className="flex flex-col items-center p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Foto de Perfil</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 lg:gap-6">
 
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-azul-logo mb-4 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
+              {/* FOTO DE PERFIL */}
+              <div className="flex flex-col bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800 p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <h4 className="text-[11px] font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300">Foto de Perfil</h4>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider ${perfil.avatar ? 'text-green-600' : 'text-neutral-400'}`}>
+                    {perfil.avatar ? '✓ Personalizada' : 'Por defecto'}
+                  </span>
+                </div>
+
+                <div className="w-full h-32 flex items-center justify-center mb-4">
                   {previewImagen ? (
-                    <img src={previewImagen} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={previewImagen} alt="Preview" className="w-32 h-32 rounded-full object-cover border-2 border-azul-logo shadow-md" />
                   ) : perfil.avatar ? (
-                    <img src={perfil.avatar} alt="Avatar Actual" className="w-full h-full object-cover" />
+                    <img src={perfil.avatar} alt="Avatar Actual" className="w-32 h-32 rounded-full object-cover border-2 border-azul-logo shadow-md" />
                   ) : (
-                    <span className="text-xl font-bold text-neutral-600 dark:text-neutral-400">
+                    <span className="w-32 h-32 rounded-full bg-white/80 dark:bg-neutral-900 border-2 border-azul-logo flex items-center justify-center text-2xl font-bold text-neutral-600 dark:text-neutral-400 shadow-md">
                       {perfil.email ? perfil.email[0].toUpperCase() : 'A'}
                     </span>
                   )}
                 </div>
 
-                <form onSubmit={handleCambiarAvatar} className="w-full flex flex-col gap-3">
+                <form onSubmit={handleCambiarAvatar} className="w-full flex flex-col gap-3 mt-auto">
                   <input
                     type="file"
                     accept="image/*"
@@ -1171,7 +1191,7 @@ const Dashboard = () => {
                         setPreviewImagen(URL.createObjectURL(e.target.files[0]));
                       }
                     }}
-                    className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer"
+                    className="text-xs text-neutral-500 file:mr-2 file:py-2 file:px-3 file:border-0 file:text-[10px] file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer w-full"
                   />
                   {nuevaImagen && (
                     <button
@@ -1187,6 +1207,106 @@ const Dashboard = () => {
                   )}
                 </form>
               </div>
+
+              {/* FOTO DE PORTADA */}
+              <div className="flex flex-col bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800 p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <h4 className="text-[11px] font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300">Portada del Sitio</h4>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider ${perfil.fotoPortada ? 'text-green-600' : 'text-neutral-400'}`}>
+                    {perfil.fotoPortada ? '✓ Personalizada' : 'Por defecto'}
+                  </span>
+                </div>
+
+                <div className="w-full h-32 overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 mb-4 shadow-inner">
+                  {previewPortada ? (
+                    <img src={previewPortada} alt="Preview Portada" className="w-full h-full object-cover" />
+                  ) : perfil.fotoPortada ? (
+                    <img src={perfil.fotoPortada} alt="Portada Actual" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[10px] text-neutral-500 px-4 text-center leading-relaxed">Imagen de fondo de la página de Inicio</span>
+                  )}
+                </div>
+
+                <form onSubmit={handleCambiarPortada} className="w-full flex flex-col gap-3 mt-auto">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files[0]) {
+                        setNuevaPortada(e.target.files[0]);
+                        setPreviewPortada(URL.createObjectURL(e.target.files[0]));
+                      }
+                    }}
+                    className="text-xs text-neutral-500 file:mr-2 file:py-2 file:px-3 file:border-0 file:text-[10px] file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer w-full"
+                  />
+                  {nuevaPortada && (
+                    <button
+                      type="submit"
+                      disabled={estadoBotones.portada.tipo === 'procesando' || estadoBotones.portada.tipo === 'exito'}
+                      className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                        estadoBotones.portada,
+                        'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
+                      )}`}
+                    >
+                      {estadoBotones.portada.tipo === 'idle' ? 'Guardar Portada' : estadoBotones.portada.texto}
+                    </button>
+                  )}
+                </form>
+              </div>
+
+              {/* FOTO SOBRE MÍ */}
+              <div className="flex flex-col bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800 p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <h4 className="text-[11px] font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300">Foto Sobre Mí</h4>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider ${perfil.fotoSobreMi ? 'text-green-600' : 'text-neutral-400'}`}>
+                    {perfil.fotoSobreMi ? '✓ Personalizada' : 'Por defecto'}
+                  </span>
+                </div>
+
+                <div className="w-full h-32 overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 mb-4 shadow-inner">
+                  {previewFotoSobreMi ? (
+                    <img src={previewFotoSobreMi} alt="Preview Foto Sobre Mi" className="w-full h-full object-cover" />
+                  ) : perfil.fotoSobreMi ? (
+                    <img src={perfil.fotoSobreMi} alt="Foto Sobre Mi Actual" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[10px] text-neutral-500 px-4 text-center leading-relaxed">Imagen de la página Sobre Mí</span>
+                  )}
+                </div>
+
+                <form onSubmit={handleCambiarFotoSobreMi} className="w-full flex flex-col gap-3 mt-auto">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files[0]) {
+                        setNuevaFotoSobreMi(e.target.files[0]);
+                        setPreviewFotoSobreMi(URL.createObjectURL(e.target.files[0]));
+                      }
+                    }}
+                    className="text-xs text-neutral-500 file:mr-2 file:py-2 file:px-3 file:border-0 file:text-[10px] file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer w-full"
+                  />
+                  {nuevaFotoSobreMi && (
+                    <button
+                      type="submit"
+                      disabled={estadoBotones.fotoSobreMi.tipo === 'procesando' || estadoBotones.fotoSobreMi.tipo === 'exito'}
+                      className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
+                        estadoBotones.fotoSobreMi,
+                        'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
+                      )}`}
+                    >
+                      {estadoBotones.fotoSobreMi.tipo === 'idle' ? 'Guardar Imagen' : estadoBotones.fotoSobreMi.texto}
+                    </button>
+                  )}
+                </form>
+              </div>
+
+            </div>
+          </div>
+
+          {/* ==========================================
+              GRUPO 2 · CONTACTO Y SEGURIDAD
+          ========================================== */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start mb-6 lg:mb-8">
 
               {/* 2. REDES DE CONTACTO */}
               <div className="p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
@@ -1285,126 +1405,121 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* 3. SEGURIDAD */}
-              <div className="md:col-span-2 xl:col-span-1 p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-4">Seguridad</h3>
-
-                <form onSubmit={handleCambiarPassword} className="flex flex-col gap-4">
-                  <div>
-                    <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Contraseña Actual</label>
-                    <input
-                      type="password"
-                      value={passwordActual}
-                      onChange={(e) => setPasswordActual(e.target.value)}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      required
-                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Nueva Contraseña</label>
-                    <input
-                      type="password"
-                      value={passwordNueva}
-                      onChange={(e) => setPasswordNueva(e.target.value)}
-                      placeholder="••••••••"
-                      autoComplete="new-password"
-                      minLength={10}
-                      required
-                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                    />
-                    <p className="text-[10px] text-neutral-500 mt-2 leading-relaxed">
-                      Mínimo 10 caracteres, con mayúscula, minúscula, número y símbolo.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Confirmar Nueva Contraseña</label>
-                    <input
-                      type="password"
-                      value={confirmarPassword}
-                      onChange={(e) => setConfirmarPassword(e.target.value)}
-                      placeholder="••••••••"
-                      autoComplete="new-password"
-                      minLength={10}
-                      required
-                      className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={estadoBotones.password.tipo === 'procesando'}
-                    className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors mt-2 ${claseEstadoBoton(
-                      estadoBotones.password,
-                      'bg-red-600 border-red-600 text-white cursor-pointer hover:bg-red-700'
-                    )}`}
-                  >
-                    {estadoBotones.password.tipo === 'idle' ? 'Cambiar Contraseña' : estadoBotones.password.texto}
-                  </button>
-                </form>
-              </div>
-
-              {/* 4. FOTO DE PORTADA */}
+              {/* SEGURIDAD */}
               <div className="p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-2">Foto de Portada</h3>
-                <p className="text-[10px] text-neutral-500 leading-relaxed mb-4">
-                  Imagen de fondo de la página de Inicio. Ideal horizontal.
-                </p>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-6">Seguridad</h3>
 
-                <div className="w-full aspect-video overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md mb-4">
-                  {previewPortada ? (
-                    <img src={previewPortada} alt="Preview Portada" className="w-full h-full object-cover" />
-                  ) : perfil.fotoPortada ? (
-                    <img src={perfil.fotoPortada} alt="Portada Actual" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xs text-neutral-500 px-6 text-center">Sin portada personalizada (se usa la imagen por defecto)</span>
-                  )}
-                </div>
-
-                <form onSubmit={handleCambiarPortada} className="w-full flex flex-col gap-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files[0]) {
-                        setNuevaPortada(e.target.files[0]);
-                        setPreviewPortada(URL.createObjectURL(e.target.files[0]));
-                      }
-                    }}
-                    className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer"
-                  />
-                  {nuevaPortada && (
+                {!editandoPassword ? (
+                  /*
+                    VISTA RESUMIDA:
+                    la contraseña nunca se muestra, solo su estado.
+                  */
+                  <div className="flex flex-col gap-4">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-neutral-500">Contraseña</span>
+                      <span className="text-xs text-neutral-700 dark:text-neutral-300 text-right">Configurada ✓</span>
+                    </div>
                     <button
-                      type="submit"
-                      disabled={estadoBotones.portada.tipo === 'procesando' || estadoBotones.portada.tipo === 'exito'}
-                      className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
-                        estadoBotones.portada,
-                        'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
-                      )}`}
+                      type="button"
+                      onClick={() => setEditandoPassword(true)}
+                      className="w-full py-2.5 mt-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest border border-azul-logo text-azul-logo hover:bg-azul-logo hover:text-white transition-colors cursor-pointer"
                     >
-                      {estadoBotones.portada.tipo === 'idle' ? 'Guardar Portada' : estadoBotones.portada.texto}
+                      Modificar Contraseña
                     </button>
-                  )}
-                </form>
-              </div>
+                  </div>
+                ) : (
+                  <>
+                    <form onSubmit={handleCambiarPassword} className="flex flex-col gap-4">
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Contraseña Actual</label>
+                        <input
+                          type="password"
+                          value={passwordActual}
+                          onChange={(e) => setPasswordActual(e.target.value)}
+                          placeholder="••••••••"
+                          autoComplete="current-password"
+                          required
+                          className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                        />
+                      </div>
 
-              {/* 5. SECCIÓN SOBRE MÍ */}
-              <div className="md:col-span-2 xl:col-span-2 p-4 sm:p-5 lg:p-6 bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-700 dark:text-neutral-300 mb-2">Sección Sobre Mí</h3>
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Nueva Contraseña</label>
+                        <input
+                          type="password"
+                          value={passwordNueva}
+                          onChange={(e) => setPasswordNueva(e.target.value)}
+                          placeholder="••••••••"
+                          autoComplete="new-password"
+                          minLength={10}
+                          required
+                          className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                        />
+                        <p className="text-[10px] text-neutral-500 mt-2 leading-relaxed">
+                          Mínimo 10 caracteres, con mayúscula, minúscula, número y símbolo.
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-neutral-500 mb-1">Confirmar Nueva Contraseña</label>
+                        <input
+                          type="password"
+                          value={confirmarPassword}
+                          onChange={(e) => setConfirmarPassword(e.target.value)}
+                          placeholder="••••••••"
+                          autoComplete="new-password"
+                          minLength={10}
+                          required
+                          className="w-full bg-white dark:bg-neutral-900 border-b border-azul-logo/30 text-neutral-900 dark:text-white px-3 py-2.5 text-xs focus:outline-none focus:border-azul-logo"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={estadoBotones.password.tipo === 'procesando'}
+                        className={`w-full py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors mt-2 ${claseEstadoBoton(
+                          estadoBotones.password,
+                          'bg-red-600 border-red-600 text-white cursor-pointer hover:bg-red-700'
+                        )}`}
+                      >
+                        {estadoBotones.password.tipo === 'idle' ? 'Cambiar Contraseña' : estadoBotones.password.texto}
+                      </button>
+                    </form>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditandoPassword(false)}
+                      className="self-start mt-5 pt-3 border-t border-neutral-300/40 dark:border-neutral-800 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"
+                    >
+                      Cerrar edición
+                    </button>
+                  </>
+                )}
+              </div>
+          </div>
+
+          {/* ==========================================
+              GRUPO 3 · SECCIÓN SOBRE MÍ
+              Título y texto de la página Sobre Mí.
+          ========================================== */}
+          <div className="bg-[#78A4CB]/15 dark:bg-neutral-900 shadow-xl border-t-4 border-t-azul-logo p-4 sm:p-6 lg:p-8">
+            <div className="mb-5">
+              <h3 className="text-sm sm:text-base font-titulos font-bold uppercase tracking-wide text-neutral-900 dark:text-white">
+                Sección Sobre Mí
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 text-xs italic mt-1">
+                El título y el texto que se muestran en la página Sobre Mí.
+              </p>
+            </div>
+
+            <div className="bg-white/70 dark:bg-neutral-950 border border-neutral-300/40 dark:border-neutral-800 p-4 sm:p-5 lg:p-6">
 
                 {!editandoSobreMi ? (
                   /*
                     VISTA RESUMIDA:
                     estado del contenido sin mostrar los formularios.
                   */
-                  <div className="flex flex-col gap-4 mt-4">
-                    <div className="flex justify-between items-center gap-2">
-                      <span className="text-[10px] uppercase font-bold text-neutral-500">Imagen</span>
-                      <span className="text-xs text-neutral-700 dark:text-neutral-300">{perfil.fotoSobreMi ? 'Personalizada ✓' : 'Por defecto'}</span>
-                    </div>
+                  <div className="flex flex-col gap-4 mt-1">
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-[10px] uppercase font-bold text-neutral-500">Título</span>
                       <span className="text-xs text-neutral-700 dark:text-neutral-300 text-right truncate max-w-[60%]">{perfil.tituloSobreMi || 'Por defecto'}</span>
@@ -1430,43 +1545,6 @@ const Dashboard = () => {
                     <p className="text-[10px] text-neutral-500 leading-relaxed mb-4">
                       Separá los párrafos con una línea en blanco. Dejar un campo vacío vuelve al contenido por defecto.
                     </p>
-
-                    <form onSubmit={handleCambiarFotoSobreMi} className="w-full flex flex-col gap-3 mb-6">
-                  <div className="w-full sm:max-w-xs aspect-video overflow-hidden border border-neutral-300/40 dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center shadow-md">
-                    {previewFotoSobreMi ? (
-                      <img src={previewFotoSobreMi} alt="Preview Foto Sobre Mi" className="w-full h-full object-cover" />
-                    ) : perfil.fotoSobreMi ? (
-                      <img src={perfil.fotoSobreMi} alt="Foto Sobre Mi Actual" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xs text-neutral-500 px-6 text-center">Sin imagen personalizada (se usa la imagen por defecto)</span>
-                    )}
-                  </div>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files[0]) {
-                        setNuevaFotoSobreMi(e.target.files[0]);
-                        setPreviewFotoSobreMi(URL.createObjectURL(e.target.files[0]));
-                      }
-                    }}
-                    className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-bold file:bg-azul-logo file:text-white hover:file:bg-azul-logo/80 cursor-pointer sm:max-w-xs"
-                  />
-
-                  {nuevaFotoSobreMi && (
-                    <button
-                      type="submit"
-                      disabled={estadoBotones.fotoSobreMi.tipo === 'procesando' || estadoBotones.fotoSobreMi.tipo === 'exito'}
-                      className={`self-start py-2.5 px-8 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${claseEstadoBoton(
-                        estadoBotones.fotoSobreMi,
-                        'bg-azul-logo border-azul-logo text-white cursor-pointer hover:opacity-90'
-                      )}`}
-                    >
-                      {estadoBotones.fotoSobreMi.tipo === 'idle' ? 'Guardar Imagen' : estadoBotones.fotoSobreMi.texto}
-                    </button>
-                  )}
-                </form>
 
                 <form onSubmit={handleGuardarSobreMi} className="flex flex-col gap-3">
                   <div>
@@ -1520,11 +1598,10 @@ const Dashboard = () => {
                     </button>
                   </>
                 )}
-              </div>
+            </div>
 
             </div>
           </div>
-        </div>
         )}
 
       </div>
