@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://portfolio-fotografo.onrender.com/api/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ]
 }
